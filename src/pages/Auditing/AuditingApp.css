@@ -1,0 +1,694 @@
+/* ============================================
+   AUDITING THEME - LIGHT CHOCOLATE BROWN
+   ============================================ */
+
+.auditing-app {
+  --bg-primary: #FDF8F3;
+  --bg-secondary: #F5EBE0;
+  --bg-card: #FFFFFF;
+  --bg-hover: #EDE0D4;
+  --text-primary: #3E2723;
+  --text-secondary: #6D4C41;
+  --accent: #8B4513;
+  --accent-light: #CD853F;
+  --accent-dark: #6B3410;
+  --accent-gradient: linear-gradient(135deg, #8B4513 0%, #CD853F 100%);
+  --success: #2E7D32;
+  --error: #C62828;
+  --warning: #F57C00;
+  --border: #D7CCC8;
+  --card-glow: rgba(139, 69, 19, 0.15);
+}
+
+/* ============================================
+   BASE OVERRIDES
+   ============================================ */
+
+.auditing-app {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ============================================
+   HEADER OVERRIDES
+   ============================================ */
+
+.auditing-app .app-header {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.auditing-app .logo-text h1 {
+  background: linear-gradient(135deg, #8B4513 0%, #CD853F 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auditing-app .logo-text span {
+  color: var(--text-secondary);
+}
+
+.auditing-app .nav-btn {
+  color: var(--text-secondary);
+}
+
+.auditing-app .nav-btn:hover {
+  background: rgba(139, 69, 19, 0.1);
+  color: var(--text-primary);
+}
+
+.auditing-app .nav-btn.active {
+  background: rgba(139, 69, 19, 0.15);
+  color: var(--accent);
+  border-color: rgba(139, 69, 19, 0.3);
+}
+
+.auditing-app .progress-ring span {
+  color: var(--text-primary);
+}
+
+/* ============================================
+   DASHBOARD OVERRIDES
+   ============================================ */
+
+.auditing-app .dashboard-hero {
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+  border: 1px solid var(--border);
+}
+
+.auditing-app .hero-content h2 {
+  background: linear-gradient(135deg, #8B4513 0%, #CD853F 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auditing-app .hero-content p {
+  color: var(--text-secondary);
+}
+
+.auditing-app .stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.auditing-app .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(139, 69, 19, 0.15);
+  border-color: rgba(139, 69, 19, 0.3);
+}
+
+.auditing-app .stat-value {
+  color: var(--accent);
+}
+
+.auditing-app .stat-label {
+  color: var(--text-secondary);
+}
+
+.auditing-app .progress-value {
+  background: linear-gradient(135deg, #8B4513 0%, #CD853F 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.auditing-app .progress-label {
+  color: var(--text-secondary);
+}
+
+.auditing-app .quick-actions h3 {
+  color: var(--text-primary);
+}
+
+.auditing-app .action-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.auditing-app .action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(139, 69, 19, 0.15);
+  border-color: rgba(139, 69, 19, 0.3);
+}
+
+.auditing-app .action-icon {
+  background: rgba(139, 69, 19, 0.1);
+  color: var(--accent);
+}
+
+.auditing-app .action-content h4 {
+  color: var(--text-primary);
+}
+
+.auditing-app .action-content p {
+  color: var(--text-secondary);
+}
+
+.auditing-app .topics-section h3 {
+  color: var(--text-primary);
+}
+
+.auditing-app .topic-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.auditing-app .topic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(139, 69, 19, 0.15);
+  border-color: rgba(139, 69, 19, 0.3);
+}
+
+.auditing-app .topic-header h4 {
+  color: var(--text-primary);
+}
+
+.auditing-app .topic-progress {
+  color: var(--accent);
+}
+
+.auditing-app .progress-fill {
+  background: linear-gradient(90deg, #8B4513 0%, #CD853F 100%);
+}
+
+.auditing-app .topic-meta span {
+  color: var(--text-secondary);
+}
+
+.auditing-app .topic-badge {
+  background: rgba(139, 69, 19, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(139, 69, 19, 0.3);
+}
+
+/* ============================================
+   MCQ PRACTICE OVERRIDES
+   ============================================ */
+
+.auditing-app .practice-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.auditing-app .question-counter {
+  color: var(--text-primary);
+}
+
+.auditing-app .score-correct {
+  color: var(--success);
+}
+
+.auditing-app .score-incorrect {
+  color: var(--error);
+}
+
+.auditing-app .question-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.auditing-app .question-meta {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.auditing-app .exam-session {
+  background: rgba(139, 69, 19, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(139, 69, 19, 0.3);
+}
+
+.auditing-app .marks-badge {
+  background: rgba(139, 69, 19, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(139, 69, 19, 0.3);
+}
+
+.auditing-app .question-text {
+  color: var(--text-primary);
+}
+
+.auditing-app .question-text pre {
+  color: var(--text-primary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.auditing-app .option-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.auditing-app .option-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 16px rgba(139, 69, 19, 0.1);
+  background: var(--bg-hover);
+}
+
+.auditing-app .option-card.selected {
+  border-color: var(--accent);
+  background: rgba(139, 69, 19, 0.1);
+}
+
+.auditing-app .option-card.correct {
+  border-color: var(--success);
+  background: rgba(46, 125, 50, 0.1);
+}
+
+.auditing-app .option-card.incorrect {
+  border-color: var(--error);
+  background: rgba(198, 40, 40, 0.1);
+}
+
+.auditing-app .option-letter {
+  background: rgba(139, 69, 19, 0.1);
+  color: var(--accent);
+}
+
+.auditing-app .btn-primary {
+  background: linear-gradient(135deg, #8B4513 0%, #CD853F 100%);
+  color: white;
+  border: none;
+}
+
+.auditing-app .btn-primary:hover {
+  background: linear-gradient(135deg, #CD853F 0%, #8B4513 100%);
+  box-shadow: 0 4px 16px rgba(139, 69, 19, 0.3);
+}
+
+.auditing-app .btn-primary:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.auditing-app .btn-secondary {
+  background: rgba(139, 69, 19, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(139, 69, 19, 0.3);
+}
+
+.auditing-app .btn-secondary:hover {
+  background: rgba(139, 69, 19, 0.2);
+}
+
+.auditing-app .result-banner.correct {
+  background: rgba(46, 125, 50, 0.1);
+  border: 1px solid rgba(46, 125, 50, 0.3);
+  color: var(--success);
+}
+
+.auditing-app .result-banner.incorrect {
+  background: rgba(198, 40, 40, 0.1);
+  border: 1px solid rgba(198, 40, 40, 0.3);
+  color: var(--error);
+}
+
+.auditing-app .explanation-container {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.auditing-app .explanation-container h4 {
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.auditing-app .explanation-content pre {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.auditing-app .mistake-analysis {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(198, 40, 40, 0.05);
+  border-left: 3px solid var(--error);
+  border-radius: 6px;
+}
+
+.auditing-app .mistake-analysis h5 {
+  color: var(--error);
+  margin-bottom: 0.5rem;
+}
+
+.auditing-app .mistake-analysis p {
+  color: var(--text-secondary);
+}
+
+.auditing-app .question-palette {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.auditing-app .question-palette h4 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.auditing-app .palette-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.auditing-app .palette-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+.auditing-app .palette-btn.current {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.auditing-app .palette-btn.answered-correct {
+  background: rgba(46, 125, 50, 0.2);
+  border-color: var(--success);
+}
+
+.auditing-app .palette-btn.answered-incorrect {
+  background: rgba(198, 40, 40, 0.2);
+  border-color: var(--error);
+}
+
+/* ============================================
+   LONG ANSWER PRACTICE OVERRIDES
+   ============================================ */
+
+.auditing-app .case-study-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.auditing-app .question-section h3,
+.auditing-app .answer-section h3 {
+  color: var(--text-primary);
+}
+
+.auditing-app .case-study-text pre {
+  color: var(--text-primary);
+  line-height: 1.8;
+}
+
+.auditing-app .answer-textarea {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all 0.2s ease;
+}
+
+.auditing-app .answer-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+  outline: none;
+}
+
+.auditing-app .answer-textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.auditing-app .textarea-footer {
+  color: var(--text-secondary);
+}
+
+.auditing-app .submitted-answer .answer-display pre {
+  color: var(--text-primary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.auditing-app .model-answer-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.auditing-app .model-answer-section h3 {
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.auditing-app .model-answer-content pre {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.auditing-app .self-evaluation-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.auditing-app .self-evaluation-section h3 {
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.auditing-app .evaluation-instructions {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.auditing-app .rubric-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.auditing-app .criterion-text {
+  color: var(--text-primary);
+}
+
+.auditing-app .criterion-max {
+  color: var(--text-secondary);
+}
+
+.auditing-app .score-input input {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 6px;
+  padding: 0.5rem;
+  width: 80px;
+  text-align: center;
+}
+
+.auditing-app .score-input input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.auditing-app .total-score {
+  background: rgba(139, 69, 19, 0.1);
+  border: 1px solid rgba(139, 69, 19, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 600;
+}
+
+.auditing-app .total-score span:first-child {
+  color: var(--text-primary);
+}
+
+.auditing-app .total-score .score-value {
+  color: var(--accent);
+  font-size: 1.25rem;
+}
+
+.auditing-app .total-score .percentage {
+  color: var(--text-secondary);
+}
+
+.auditing-app .improvement-tips {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.auditing-app .improvement-tips h4 {
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.auditing-app .improvement-tips ul {
+  list-style: none;
+  padding: 0;
+}
+
+.auditing-app .improvement-tips li {
+  padding: 0.75rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.auditing-app .improvement-tips li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.auditing-app .case-study-palette {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.auditing-app .case-study-palette h4 {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.auditing-app .palette-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.auditing-app .palette-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+.auditing-app .palette-item.current {
+  background: rgba(139, 69, 19, 0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.auditing-app .case-number,
+.auditing-app .case-topic,
+.auditing-app .case-marks {
+  color: var(--text-primary);
+}
+
+/* ============================================
+   DIFFICULTY BADGES
+   ============================================ */
+
+.auditing-app .difficulty-badge.difficulty-easy {
+  background: rgba(46, 125, 50, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(46, 125, 50, 0.3);
+}
+
+.auditing-app .difficulty-badge.difficulty-medium {
+  background: rgba(245, 124, 0, 0.15);
+  color: var(--warning);
+  border: 1px solid rgba(245, 124, 0, 0.3);
+}
+
+.auditing-app .difficulty-badge.difficulty-hard {
+  background: rgba(198, 40, 40, 0.15);
+  color: var(--error);
+  border: 1px solid rgba(198, 40, 40, 0.3);
+}
+
+/* ============================================
+   NAVIGATION ARROWS
+   ============================================ */
+
+.auditing-app .nav-arrow {
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.auditing-app .nav-arrow:hover:not(:disabled) {
+  background: rgba(139, 69, 19, 0.1);
+  border-color: var(--accent);
+}
+
+.auditing-app .nav-arrow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auditing-app .dashboard,
+.auditing-app .mcq-practice,
+.auditing-app .long-answer-practice {
+  animation: fadeIn 0.3s ease;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  .auditing-app .dashboard-hero {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .auditing-app .hero-stats {
+    flex-direction: column;
+  }
+
+  .auditing-app .action-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .auditing-app .topics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
