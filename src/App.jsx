@@ -5,6 +5,9 @@ import IndirectTaxApp from './pages/IndirectTax/IndirectTaxApp';
 import AFMApp from './pages/AFM/AFMApp';
 import AuditingApp from './pages/Auditing/AuditingApp';
 import IBSApp from './pages/IBS/IBSApp';
+import Disclaimer from './pages/Disclaimer';
+import AboutUs from './pages/AboutUs';
+import ContactUs from './pages/ContactUs';
 import './App.css';
 
 // Main App Component with Router
@@ -17,6 +20,9 @@ function App() {
         <Route path="/afm/*" element={<AFMApp />} />
         <Route path="/auditing/*" element={<AuditingApp />} />
         <Route path="/ibs/*" element={<IBSApp />} />
+        <Route path="/disclaimer" element={<Disclaimer />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<ContactUs />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

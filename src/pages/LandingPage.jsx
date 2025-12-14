@@ -1,10 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import SiteLogo from '../components/SiteLogo';
 import './LandingPage.css';
 
 function LandingPage() {
   return (
     <div className="landing-container">
+      <div className="site-header">
+        <SiteLogo />
+      </div>
       <div className="landing-hero">
         <h1>CA Final Practice Platform</h1>
         <p>Master your CA Final exams with comprehensive practice questions from past papers</p>
@@ -94,6 +98,19 @@ function LandingPage() {
           <div className="subject-arrow">→</div>
         </Link>
       </div>
+
+      <footer className="landing-footer">
+        <div className="footer-content">
+          <div className="footer-links">
+            <Link to="/about">About Us</Link>
+            <Link to="/contact">Contact Us</Link>
+            <Link to="/disclaimer">Disclaimer</Link>
+          </div>
+          <div className="footer-text">
+            <p>99ca.tech - Independent Educational Platform for CA Students</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

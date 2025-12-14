@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SiteLogo from '../../components/SiteLogo';
 import '../../App.css';
 import { mcqQuestions, longAnswerQuestions } from '../../data/questions.js';
 
@@ -12,6 +13,9 @@ const Header = ({ currentSection, onNavigate }) => {
 
   return (
     <header className="app-header">
+      <div className="site-branding">
+        <SiteLogo showText={true} />
+      </div>
       <div className="header-content">
         <div className="logo-section">
           <button className="back-button" onClick={() => navigate('/')} title="Back to Main Dashboard">
