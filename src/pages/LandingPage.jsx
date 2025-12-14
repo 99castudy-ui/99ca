@@ -72,6 +72,27 @@ function LandingPage() {
           </div>
           <div className="subject-arrow">→</div>
         </Link>
+
+        <Link to="/ibs" className="subject-card lavender-theme">
+          <div className="subject-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div className="subject-content">
+            <div className="subject-paper">Paper 6</div>
+            <h2>Integrated Business Solutions</h2>
+            <p>Financial Reporting, Tax, Audit & Corporate Laws</p>
+            <div className="subject-stats">
+              <span>30 MCQs</span>
+              <span>•</span>
+              <span>3 Long Answers</span>
+            </div>
+          </div>
+          <div className="subject-arrow">→</div>
+        </Link>
       </div>
     </div>
   );

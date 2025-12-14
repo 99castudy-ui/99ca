@@ -1,0 +1,523 @@
+/* ============================================
+   IBS THEME - LAVENDER COLOR SCHEME
+   ============================================ */
+
+.ibs-app {
+  --bg-primary: #0f0f1a;
+  --bg-secondary: #1a1a2e;
+  --bg-card: #252542;
+  --bg-hover: #2d2d4a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #a0a0c0;
+  --accent: #9b87f5;
+  --accent-light: #b8a4f8;
+  --accent-dark: #7c5ce7;
+  --accent-gradient: linear-gradient(135deg, #9b87f5 0%, #7c5ce7 100%);
+  --accent-glow: rgba(155, 135, 245, 0.3);
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --gradient-start: #9b87f5;
+  --gradient-end: #7c5ce7;
+}
+
+/* ============================================
+   BASE OVERRIDES
+   ============================================ */
+
+.ibs-app {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ============================================
+   HEADER OVERRIDES
+   ============================================ */
+
+.ibs-app .app-header {
+  border-bottom: 1px solid rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .logo-text h1 {
+  background: linear-gradient(135deg, #9b87f5 0%, #7c5ce7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ibs-app .nav-btn.active {
+  background: rgba(155, 135, 245, 0.15);
+  color: var(--accent);
+  border-color: rgba(155, 135, 245, 0.3);
+}
+
+.ibs-app .nav-btn:hover {
+  background: rgba(155, 135, 245, 0.1);
+  color: var(--accent-light);
+}
+
+/* ============================================
+   DASHBOARD OVERRIDES
+   ============================================ */
+
+.ibs-app .dashboard-hero {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .hero-content h2 {
+  background: linear-gradient(135deg, #9b87f5 0%, #7c5ce7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ibs-app .stat-card {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .stat-card:hover {
+  box-shadow: 0 8px 32px rgba(155, 135, 245, 0.15);
+  border-color: rgba(155, 135, 245, 0.3);
+}
+
+.ibs-app .progress-value {
+  background: linear-gradient(135deg, #9b87f5 0%, #7c5ce7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ibs-app .action-card {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(155, 135, 245, 0.15);
+  border-color: rgba(155, 135, 245, 0.3);
+}
+
+.ibs-app .action-icon {
+  background: rgba(155, 135, 245, 0.1);
+  color: var(--accent);
+}
+
+.ibs-app .topic-card {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .topic-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(155, 135, 245, 0.15);
+  border-color: rgba(155, 135, 245, 0.3);
+}
+
+.ibs-app .progress-fill {
+  background: linear-gradient(90deg, #9b87f5 0%, #b8a4f8 100%);
+}
+
+.ibs-app .topic-badge {
+  background: rgba(155, 135, 245, 0.15);
+  color: #b8a4f8;
+  border: 1px solid rgba(155, 135, 245, 0.3);
+}
+
+.ibs-app .topic-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.ibs-app .topic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.ibs-app .topic-header h4 {
+  margin: 0;
+  flex: 1;
+}
+
+.ibs-app .topic-progress {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent-light);
+  background: rgba(155, 135, 245, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+}
+
+.ibs-app .topic-description {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.ibs-app .topic-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(155, 135, 245, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+/* ============================================
+   MCQ PRACTICE OVERRIDES
+   ============================================ */
+
+/* Collapsible Case Study Context Panel */
+.ibs-app .case-context-panel {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.ibs-app .case-context-header {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: background 0.2s ease;
+}
+
+.ibs-app .case-context-header:hover {
+  background: rgba(155, 135, 245, 0.05);
+}
+
+.ibs-app .case-context-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-light);
+  font-size: 0.95rem;
+}
+
+.ibs-app .case-context-arrow {
+  transition: transform 0.3s ease;
+  color: var(--accent);
+}
+
+.ibs-app .case-context-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.ibs-app .case-context-content {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.ibs-app .case-context-content pre {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+}
+
+.ibs-app .option-card {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .option-card:hover {
+  border-color: rgba(155, 135, 245, 0.3);
+  box-shadow: 0 4px 16px rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .option-card.selected {
+  border-color: var(--accent);
+  background: rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .option-card.correct {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.ibs-app .option-card.incorrect {
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.ibs-app .btn-primary {
+  background: linear-gradient(135deg, #9b87f5 0%, #7c5ce7 100%);
+  color: white;
+  border: none;
+}
+
+.ibs-app .btn-primary:hover {
+  background: linear-gradient(135deg, #b8a4f8 0%, #9b87f5 100%);
+  box-shadow: 0 4px 16px rgba(155, 135, 245, 0.3);
+}
+
+.ibs-app .btn-secondary {
+  background: rgba(155, 135, 245, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(155, 135, 245, 0.3);
+}
+
+.ibs-app .btn-secondary:hover {
+  background: rgba(155, 135, 245, 0.2);
+}
+
+.ibs-app .result-banner.correct {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--success);
+}
+
+.ibs-app .result-banner.incorrect {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--error);
+}
+
+.ibs-app .explanation-container {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.ibs-app .explanation-container h4 {
+  color: var(--accent-light);
+  margin-bottom: 1rem;
+}
+
+.ibs-app .explanation-content pre {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.ibs-app .mistake-analysis {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.05);
+  border-left: 3px solid var(--error);
+  border-radius: 8px;
+}
+
+.ibs-app .mistake-analysis h5 {
+  color: var(--error);
+  margin-bottom: 0.5rem;
+}
+
+.ibs-app .mistake-analysis p {
+  color: var(--text-secondary);
+}
+
+.ibs-app .question-palette {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.ibs-app .palette-btn {
+  background: rgba(155, 135, 245, 0.1);
+  border: 1px solid rgba(155, 135, 245, 0.2);
+  color: var(--text-primary);
+}
+
+.ibs-app .palette-btn:hover {
+  background: rgba(155, 135, 245, 0.2);
+  border-color: var(--accent);
+}
+
+.ibs-app .palette-btn.current {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.ibs-app .palette-btn.answered-correct {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: var(--success);
+}
+
+.ibs-app .palette-btn.answered-incorrect {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--error);
+}
+
+/* ============================================
+   LONG ANSWER PRACTICE OVERRIDES
+   ============================================ */
+
+.ibs-app .case-study-container {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.ibs-app .answer-textarea {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(155, 135, 245, 0.2);
+  color: var(--text-primary);
+}
+
+.ibs-app .answer-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .model-answer-section {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.ibs-app .model-answer-section h3 {
+  color: var(--accent-light);
+  margin-bottom: 1rem;
+}
+
+.ibs-app .model-answer-content pre {
+  color: var(--text-secondary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.ibs-app .self-evaluation-section {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.ibs-app .rubric-item {
+  background: rgba(155, 135, 245, 0.05);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.ibs-app .score-input input {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(155, 135, 245, 0.2);
+  color: var(--text-primary);
+}
+
+.ibs-app .score-input input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(155, 135, 245, 0.1);
+}
+
+.ibs-app .total-score {
+  padding: 1rem;
+  background: rgba(155, 135, 245, 0.1);
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.ibs-app .total-score .score-value {
+  color: var(--accent-light);
+  font-weight: 600;
+}
+
+.ibs-app .improvement-tips {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.ibs-app .improvement-tips h4 {
+  color: var(--accent-light);
+  margin-bottom: 1rem;
+}
+
+.ibs-app .improvement-tips ul li {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.ibs-app .case-study-palette {
+  background: linear-gradient(135deg, #252542 0%, #1a1a2e 100%);
+  border: 1px solid rgba(155, 135, 245, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.ibs-app .palette-item {
+  background: rgba(155, 135, 245, 0.1);
+  border: 1px solid rgba(155, 135, 245, 0.2);
+  color: var(--text-primary);
+}
+
+.ibs-app .palette-item:hover {
+  background: rgba(155, 135, 245, 0.2);
+  border-color: var(--accent);
+}
+
+.ibs-app .palette-item.current {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .ibs-app .case-context-content {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .ibs-app .case-context-header {
+    padding: 0.75rem 1rem;
+  }
+  
+  .ibs-app .case-context-title {
+    font-size: 0.85rem;
+  }
+  
+  .ibs-app .case-context-content {
+    padding: 0 1rem 1rem 1rem;
+    max-height: 250px;
+  }
+}
+
