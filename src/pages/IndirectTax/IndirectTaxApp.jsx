@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../../App.css';
 import { mcqQuestions, longAnswerQuestions } from '../../data/questions.js';
 
 // Header Component
 const Header = ({ currentSection, onNavigate }) => {
+  const navigate = useNavigate();
   const getProgress = () => {
     return 35;
   };
@@ -12,6 +14,11 @@ const Header = ({ currentSection, onNavigate }) => {
     <header className="app-header">
       <div className="header-content">
         <div className="logo-section">
+          <button className="back-button" onClick={() => navigate('/')} title="Back to Main Dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </button>
           <div className="logo-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2L2 7l10 5 10-5-10-5z"/>
@@ -692,4 +699,5 @@ function IndirectTaxApp() {
 }
 
 export default IndirectTaxApp;
+
 

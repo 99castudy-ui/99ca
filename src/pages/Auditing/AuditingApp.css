@@ -64,6 +64,12 @@
   border-color: rgba(139, 69, 19, 0.3);
 }
 
+.auditing-app .back-button:hover {
+  background: rgba(139, 69, 19, 0.1);
+  color: #8b4513;
+  border-color: rgba(139, 69, 19, 0.3);
+}
+
 .auditing-app .progress-ring span {
   color: var(--text-primary);
 }
@@ -691,4 +697,5 @@
     grid-template-columns: 1fr;
   }
 }
+
 

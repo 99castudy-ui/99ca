@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './AuditingApp.css';
 import { mcqQuestions as auditingMcqQuestions, longAnswerQuestions as auditingLongAnswerQuestions } from '../../data/auditingQuestions.js';
 
 // Header Component
 const Header = ({ currentSection, onNavigate }) => {
+  const navigate = useNavigate();
   const getProgress = () => {
     return 35;
   };
@@ -12,6 +14,11 @@ const Header = ({ currentSection, onNavigate }) => {
     <header className="app-header auditing-header">
       <div className="header-content">
         <div className="logo-section">
+          <button className="back-button" onClick={() => navigate('/')} title="Back to Main Dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </button>
           <div className="logo-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>

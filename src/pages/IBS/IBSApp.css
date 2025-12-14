@@ -56,6 +56,12 @@
   color: var(--accent-light);
 }
 
+.ibs-app .back-button:hover {
+  background: rgba(155, 135, 245, 0.1);
+  color: var(--accent);
+  border-color: rgba(155, 135, 245, 0.3);
+}
+
 /* ============================================
    DASHBOARD OVERRIDES
    ============================================ */

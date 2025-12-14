@@ -40,6 +40,12 @@
   border-color: rgba(249, 115, 22, 0.3);
 }
 
+.afm-app .back-button:hover {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
 /* ============================================
    DASHBOARD OVERRIDES
    ============================================ */
@@ -451,4 +457,5 @@
     grid-template-columns: 1fr;
   }
 }
+
 
