@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SiteLogo from '../../components/SiteLogo';
+import { analyzeAnswer } from '../../services/geminiService';
+import { GeminiAnalysisUI } from '../../components/GeminiAnalysisUI';
 import '../../App.css';
 import { mcqQuestions, longAnswerQuestions } from '../../data/questions.js';
 
@@ -454,6 +456,9 @@ const LongAnswerPractice = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [selfScore, setSelfScore] = useState({});
+  const [geminiAnalysis, setGeminiAnalysis] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState(null);
 
   const currentQuestion = longAnswerQuestions[currentQuestionIndex];
 
@@ -478,6 +483,32 @@ const LongAnswerPractice = () => {
     return currentQuestion.rubric.reduce((sum, r) => sum + r.maxScore, 0);
   };
 
+  const handleGeminiAnalysis = async () => {
+    if (!userAnswer.trim()) {
+      setAnalysisError('Please submit your answer first');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+    
+    try {
+      const analysis = await analyzeAnswer(
+        userAnswer,
+        currentQuestion.modelAnswer,
+        currentQuestion.question,
+        currentQuestion.rubric
+      );
+      
+      setGeminiAnalysis(analysis);
+    } catch (error) {
+      setAnalysisError(error.message || 'Failed to analyze answer. Please try again.');
+      console.error('Analysis error:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleNext = () => {
     if (currentQuestionIndex < longAnswerQuestions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -485,6 +516,8 @@ const LongAnswerPractice = () => {
       setIsSubmitted(false);
       setShowSolution(false);
       setSelfScore({});
+      setGeminiAnalysis(null);
+      setAnalysisError(null);
     }
   };
 
@@ -495,6 +528,8 @@ const LongAnswerPractice = () => {
       setIsSubmitted(false);
       setShowSolution(false);
       setSelfScore({});
+      setGeminiAnalysis(null);
+      setAnalysisError(null);
     }
   };
 
@@ -575,15 +610,48 @@ For explanation questions:
               <div className="answer-display">
                 <pre>{userAnswer}</pre>
               </div>
-              <button 
-                className="btn-secondary"
-                onClick={() => setShowSolution(!showSolution)}
-              >
-                {showSolution ? 'Hide' : 'View'} Model Answer
-              </button>
+              <div className="answer-actions">
+                <button 
+                  className="btn-primary analyse-btn"
+                  onClick={handleGeminiAnalysis}
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <span className="loading-spinner"></span>
+                      Analysing...
+                    </>
+                  ) : (
+                    'Analyse'
+                  )}
+                </button>
+                <button 
+                  className="btn-secondary"
+                  onClick={() => setShowSolution(!showSolution)}
+                >
+                  {showSolution ? 'Hide' : 'View'} Model Answer
+                </button>
+              </div>
+              {analysisError && (
+                <div className="error-message" style={{ marginTop: '1rem' }}>
+                  <p>⚠️ {analysisError}</p>
+                  <button className="retry-btn" onClick={handleGeminiAnalysis}>Retry</button>
+                </div>
+              )}
             </div>
           )}
         </div>
+
+        {/* Gemini AI Analysis Section */}
+        {isSubmitted && geminiAnalysis && (
+          <GeminiAnalysisUI
+            geminiAnalysis={geminiAnalysis}
+            rubric={currentQuestion.rubric}
+            selfScore={selfScore}
+            getTotalSelfScore={getTotalSelfScore}
+            getMaxScore={getMaxScore}
+          />
+        )}
 
         {showSolution && (
           <>
@@ -658,6 +726,8 @@ For explanation questions:
                 setIsSubmitted(false);
                 setShowSolution(false);
                 setSelfScore({});
+                setGeminiAnalysis(null);
+                setAnalysisError(null);
               }}
             >
               <span className="case-number">Case {index + 1}</span>
