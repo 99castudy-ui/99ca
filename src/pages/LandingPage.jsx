@@ -11,8 +11,10 @@ function LandingPage() {
         <SiteLogo />
       </div>
       <div className="landing-hero">
-        <h1>CA Final Practice Platform</h1>
-        <p>Master your CA Final exams with comprehensive practice questions from past papers</p>
+        <h1>
+          Master Your CA Journey with <span className="ai-highlight">AI Precision</span>
+        </h1>
+        <p>99ca.tech bridges the gap between preparation and perfection. Practice model questions, get instant AI analysis, and access professional tools.</p>
       </div>
 
       <div className="subject-cards">
