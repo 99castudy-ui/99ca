@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import SiteLogo from '../components/SiteLogo';
+import Testimonials from '../components/Testimonials';
 import './LandingPage.css';
 
 function LandingPage() {
@@ -98,6 +99,8 @@ function LandingPage() {
           <div className="subject-arrow">→</div>
         </Link>
       </div>
+
+      <Testimonials />
 
       <footer className="landing-footer">
         <div className="footer-content">
