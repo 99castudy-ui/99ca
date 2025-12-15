@@ -16,14 +16,49 @@ function SiteLogo({ showText = true, className = '' }) {
               <stop offset="100%" stopColor="#f97316" />
             </linearGradient>
           </defs>
-          <rect x="4" y="4" width="40" height="40" rx="10" fill={`url(#${gradientId})`} opacity="0.2" />
-          <rect x="8" y="8" width="32" height="32" rx="8" stroke={`url(#${gradientId})`} strokeWidth="2.5" fill="none" />
-          <text x="24" y="30" fontSize="20" fontWeight="700" fill={`url(#${gradientId})`} textAnchor="middle" fontFamily="system-ui, -apple-system, sans-serif">99</text>
+          {/* Pen Nib Icon - representing CA authenticity */}
+          {/* Main nib body */}
+          <path 
+            d="M24 6 L30 12 L28 20 L20 20 L18 12 Z" 
+            fill={`url(#${gradientId})`}
+            opacity="0.9"
+          />
+          {/* Nib split/center line */}
+          <path 
+            d="M24 6 L24 20" 
+            stroke={`url(#${gradientId})`}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          {/* Nib tip */}
+          <path 
+            d="M20 20 L24 24 L28 20" 
+            fill={`url(#${gradientId})`}
+            opacity="0.9"
+          />
+          {/* Pen holder/body */}
+          <rect 
+            x="22" 
+            y="24" 
+            width="4" 
+            height="18" 
+            rx="2" 
+            fill={`url(#${gradientId})`}
+            opacity="0.7"
+          />
+          {/* Decorative ring */}
+          <circle 
+            cx="24" 
+            cy="28" 
+            r="1.5" 
+            fill={`url(#${gradientId})`}
+            opacity="0.5"
+          />
         </svg>
       </div>
       {showText && (
         <span className="logo-text">
-          99ca
+          99ca.tech
         </span>
       )}
     </Link>
