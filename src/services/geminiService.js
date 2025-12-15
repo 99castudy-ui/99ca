@@ -255,9 +255,59 @@ const tryOpenAIAPI = async (prompt) => {
   return null; // All OpenAI attempts failed
 };
 
+// Validate if the answer is meaningful
+const isValidAnswer = (answer) => {
+  if (!answer) return false;
+  
+  const trimmed = answer.trim();
+  
+  // Check for empty or whitespace-only
+  if (trimmed.length === 0) return false;
+  
+  // Check for very short answers (less than 15 characters)
+  if (trimmed.length < 15) {
+    // Common meaningless patterns
+    const meaninglessPatterns = [
+      /^\.{1,}$/,           // Just dots: "...", "..", "."
+      /^\.{1,}\s*$/,        // Dots with optional whitespace
+      /^[\.\s]+$/,          // Only dots and spaces
+      /^as$/,               // Just "as"
+      /^test$/i,            // Just "test"
+      /^answer$/i,          // Just "answer"
+      /^\.{1,3}$/,          // 1-3 dots
+      /^[\.\-_]{2,}$/,      // Repeated punctuation
+      /^[a-z]{1,2}$/i,      // 1-2 letter words
+    ];
+    
+    // Check if it matches any meaningless pattern
+    if (meaninglessPatterns.some(pattern => pattern.test(trimmed))) {
+      return false;
+    }
+    
+    // Count meaningful words (at least 2 characters each)
+    const words = trimmed.split(/\s+/).filter(w => w.length >= 2);
+    if (words.length < 3) {
+      return false;
+    }
+  }
+  
+  // Check if answer is mostly punctuation or special characters
+  const alphanumericCount = trimmed.replace(/[^a-zA-Z0-9]/g, '').length;
+  if (alphanumericCount < 10) {
+    return false;
+  }
+  
+  return true;
+};
+
 export const analyzeAnswer = async (userAnswer, modelAnswer, question, rubric) => {
   if (!GEMINI_API_KEY && !OPENAI_API_KEY) {
     throw new Error('No API keys configured. Please set VITE_GEMINI_API_KEY or VITE_OPENAI_API_KEY in your .env file');
+  }
+
+  // Validate that the student provided a meaningful answer
+  if (!isValidAnswer(userAnswer)) {
+    throw new Error('Please provide a complete answer before analysis. Your answer appears to be empty or too short. A meaningful answer should contain at least a few sentences explaining your approach.');
   }
 
   // Build the analysis prompt
