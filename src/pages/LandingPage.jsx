@@ -121,6 +121,26 @@ function LandingPage() {
           </div>
           <div className="subject-arrow">→</div>
         </Link>
+
+        <Link to="/direct-tax" className="subject-card turquoise-theme">
+          <div className="subject-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 11l3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+            </svg>
+          </div>
+          <div className="subject-content">
+            <div className="subject-paper">Paper 4</div>
+            <h2>Direct Tax Laws & International Taxation</h2>
+            <p>Income Tax, Deductions & International Tax</p>
+            <div className="subject-stats">
+              <span>8 MCQs</span>
+              <span>•</span>
+              <span>2 Long Answers</span>
+            </div>
+          </div>
+          <div className="subject-arrow">→</div>
+        </Link>
       </div>
 
       <Testimonials />

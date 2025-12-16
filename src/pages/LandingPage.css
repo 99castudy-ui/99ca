@@ -271,6 +271,32 @@
   color: #8B0000;
 }
 
+.turquoise-theme {
+  border-color: rgba(20, 184, 166, 0.2);
+}
+
+.turquoise-theme:hover {
+  border-color: rgba(20, 184, 166, 0.4);
+  box-shadow: 0 12px 48px rgba(20, 184, 166, 0.2);
+}
+
+.turquoise-theme::before {
+  background: linear-gradient(90deg, transparent, #14b8a6, transparent);
+}
+
+.turquoise-theme .subject-icon {
+  background: rgba(20, 184, 166, 0.1);
+  color: #14b8a6;
+}
+
+.turquoise-theme .subject-paper {
+  color: #5eead4;
+}
+
+.turquoise-theme .subject-content h2 {
+  color: #14b8a6;
+}
+
 .subject-content p {
   color: var(--text-secondary);
   margin-bottom: 1.5rem;
