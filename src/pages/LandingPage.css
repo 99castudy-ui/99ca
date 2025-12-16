@@ -158,6 +158,19 @@
   background: linear-gradient(90deg, transparent, #9b87f5, transparent);
 }
 
+.maroon-theme {
+  border-color: rgba(139, 0, 0, 0.2);
+}
+
+.maroon-theme:hover {
+  border-color: rgba(139, 0, 0, 0.4);
+  box-shadow: 0 12px 48px rgba(139, 0, 0, 0.2);
+}
+
+.maroon-theme::before {
+  background: linear-gradient(90deg, transparent, #8B0000, transparent);
+}
+
 .subject-icon {
   width: 64px;
   height: 64px;
@@ -187,6 +200,11 @@
 .lavender-theme .subject-icon {
   background: rgba(155, 135, 245, 0.1);
   color: #9b87f5;
+}
+
+.maroon-theme .subject-icon {
+  background: rgba(139, 0, 0, 0.1);
+  color: #8B0000;
 }
 
 .subject-icon svg {
@@ -223,6 +241,10 @@
   color: #b8a4f8;
 }
 
+.maroon-theme .subject-paper {
+  color: #A52A2A;
+}
+
 .subject-content h2 {
   font-size: 1.75rem;
   font-weight: 700;
@@ -243,6 +265,10 @@
 
 .lavender-theme .subject-content h2 {
   color: #b8a4f8;
+}
+
+.maroon-theme .subject-content h2 {
+  color: #8B0000;
 }
 
 .subject-content p {
