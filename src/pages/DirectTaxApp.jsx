@@ -60,12 +60,14 @@ const DirectTaxDashboard = () => {
   useEffect(() => {
     if (filteredMCQs.length > 0 && currentQuestion < filteredMCQs.length) {
       const question = filteredMCQs[currentQuestion];
-      const answered = answeredQuestions.find(a => a.id === question?.id);
-      setSelectedAnswer(answered?.selected ?? null);
-      setShowExplanation(!!answered);
-      setIsContextExpanded(true);
+      if (question) {
+        const answered = answeredQuestions.find(a => a.id === question.id);
+        setSelectedAnswer(answered?.selected ?? null);
+        setShowExplanation(!!answered);
+        setIsContextExpanded(true);
+      }
     }
-  }, [currentQuestion, filteredMCQs]);
+  }, [currentQuestion]); // Removed filteredMCQs from dependencies to prevent unnecessary resets
 
   const handleAnswerSubmit = () => {
     if (selectedAnswer === null) {
@@ -192,13 +194,24 @@ const DirectTaxDashboard = () => {
   );
 
   const renderMCQ = () => {
+    // Debug: Log question counts
+    console.log('Total MCQs:', directTaxMcqQuestions.length);
+    console.log('Filtered MCQs:', filteredMCQs.length);
+    console.log('Current question index:', currentQuestion);
+    
     if (filteredMCQs.length === 0) {
-      return <div className="dt-no-questions">No questions match your filters</div>;
+      return (
+        <div className="dt-no-questions">
+          <p>No questions match your filters</p>
+          <p>Total questions available: {directTaxMcqQuestions.length}</p>
+          <p>Try adjusting your filter settings.</p>
+        </div>
+      );
     }
 
     const question = filteredMCQs[currentQuestion];
     if (!question) {
-      return <div className="dt-no-questions">Question not found</div>;
+      return <div className="dt-no-questions">Question not found at index {currentQuestion}</div>;
     }
     
     const answered = answeredQuestions.find(a => a.id === question.id);
@@ -309,8 +322,15 @@ const DirectTaxDashboard = () => {
                 <button
                   key={idx}
                   className={optionClass}
-                  onClick={() => !showExplanation && !answered && setSelectedAnswer(idx)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!showExplanation && !answered) {
+                      setSelectedAnswer(idx);
+                    }
+                  }}
                   disabled={showExplanation || !!answered}
+                  type="button"
                 >
                   <span className="dt-option-label">{String.fromCharCode(65 + idx)}</span>
                   <span className="dt-option-text">{option}</span>
@@ -367,6 +387,17 @@ const DirectTaxDashboard = () => {
   };
 
   const renderLongAnswer = () => {
+    if (directTaxLongAnswerQuestions.length === 0) {
+      return (
+        <div className="dt-long-answer">
+          <div className="dt-no-questions">
+            <h2>Long Answer Practice</h2>
+            <p>No long answer questions available yet.</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="dt-long-answer">
         <div className="dt-long-header">
