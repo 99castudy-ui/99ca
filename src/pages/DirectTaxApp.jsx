@@ -387,12 +387,17 @@ const DirectTaxDashboard = () => {
   };
 
   const renderLongAnswer = () => {
-    if (directTaxLongAnswerQuestions.length === 0) {
+    // Debug: Log to check if questions are loaded
+    console.log('Long Answer Questions:', directTaxLongAnswerQuestions);
+    console.log('Long Answer Questions Length:', directTaxLongAnswerQuestions?.length);
+    
+    if (!directTaxLongAnswerQuestions || directTaxLongAnswerQuestions.length === 0) {
       return (
         <div className="dt-long-answer">
           <div className="dt-no-questions">
             <h2>Long Answer Practice</h2>
             <p>No long answer questions available yet.</p>
+            {!directTaxLongAnswerQuestions && <p style={{color: 'red'}}>Error: Questions not loaded</p>}
           </div>
         </div>
       );
