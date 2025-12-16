@@ -68,9 +68,22 @@ const DirectTaxDashboard = () => {
   }, [currentQuestion, filteredMCQs]);
 
   const handleAnswerSubmit = () => {
-    if (selectedAnswer === null) return;
+    if (selectedAnswer === null) {
+      console.warn('No answer selected');
+      return;
+    }
     
     const question = filteredMCQs[currentQuestion];
+    if (!question) {
+      console.error('Question not found at index:', currentQuestion);
+      return;
+    }
+    
+    if (!question.id) {
+      console.error('Question missing id:', question);
+      return;
+    }
+    
     const isCorrect = selectedAnswer === question.correctAnswer;
     
     // Check if already answered
@@ -184,6 +197,10 @@ const DirectTaxDashboard = () => {
     }
 
     const question = filteredMCQs[currentQuestion];
+    if (!question) {
+      return <div className="dt-no-questions">Question not found</div>;
+    }
+    
     const answered = answeredQuestions.find(a => a.id === question.id);
 
     return (
@@ -305,8 +322,12 @@ const DirectTaxDashboard = () => {
           {!showExplanation && !answered && (
             <button 
               className="dt-submit-btn"
-              onClick={handleAnswerSubmit}
-              disabled={selectedAnswer === null}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAnswerSubmit();
+              }}
+              disabled={selectedAnswer === null || selectedAnswer === undefined}
             >
               Submit Answer
             </button>
