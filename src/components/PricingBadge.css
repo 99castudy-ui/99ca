@@ -1,0 +1,120 @@
+/* Pricing Badge - Ribbon style cutting across bottom right corner */
+.pricing-badge {
+  position: fixed !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  z-index: 99999 !important; /* Extremely high z-index to ensure visibility above everything */
+  pointer-events: none; /* Allow clicks to pass through */
+  overflow: visible !important;
+  width: 250px;
+  height: 250px;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.pricing-ribbon {
+  position: absolute;
+  bottom: 20px;
+  right: -50px;
+  width: 300px;
+  height: 65px;
+  background: var(--theme-color, #6366f1);
+  transform: rotate(-45deg);
+  transform-origin: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-top: 2px solid rgba(255, 255, 255, 0.25);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.25);
+}
+
+.pricing-ribbon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  pointer-events: none;
+}
+
+.pricing-text {
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transform: rotate(45deg);
+  position: relative;
+  z-index: 1;
+}
+
+/* Theme-specific adjustments */
+.pricing-badge-maroon .pricing-ribbon {
+  background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
+}
+
+.pricing-badge-orange .pricing-ribbon {
+  background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+}
+
+.pricing-badge-brown .pricing-ribbon {
+  background: linear-gradient(135deg, #8B4513 0%, #CD853F 100%);
+}
+
+.pricing-badge-blue .pricing-ribbon {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+}
+
+.pricing-badge-lavender .pricing-ribbon {
+  background: linear-gradient(135deg, #9b87f5 0%, #b8a4f8 100%);
+}
+
+.pricing-badge-turquoise .pricing-ribbon {
+  background: linear-gradient(135deg, #14b8a6 0%, #5eead4 100%);
+}
+
+.pricing-badge-default .pricing-ribbon {
+  background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pricing-badge {
+    width: 150px;
+    height: 150px;
+  }
+
+  .pricing-ribbon {
+    width: 220px;
+    height: 50px;
+  }
+
+  .pricing-text {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pricing-badge {
+    width: 120px;
+    height: 120px;
+  }
+
+  .pricing-ribbon {
+    width: 180px;
+    height: 45px;
+  }
+
+  .pricing-text {
+    font-size: 0.85rem;
+  }
+}
+

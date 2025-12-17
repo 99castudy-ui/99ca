@@ -19,6 +19,7 @@ function LandingPage() {
 
       <div className="subject-cards">
         <Link to="/indirect-tax" className="subject-card blue-theme">
+          <div className="card-pricing-badge">Rs. 750</div>
           <div className="subject-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2L2 7l10 5 10-5-10-5z"/>
@@ -40,6 +41,7 @@ function LandingPage() {
         </Link>
 
         <Link to="/afm" className="subject-card orange-theme">
+          <div className="card-pricing-badge">Rs. 750</div>
           <div className="subject-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
@@ -59,6 +61,7 @@ function LandingPage() {
         </Link>
 
         <Link to="/auditing" className="subject-card brown-theme">
+          <div className="card-pricing-badge">Rs. 750</div>
           <div className="subject-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -81,6 +84,7 @@ function LandingPage() {
         </Link>
 
         <Link to="/ibs" className="subject-card lavender-theme">
+          <div className="card-pricing-badge">Rs. 750</div>
           <div className="subject-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2L2 7l10 5 10-5-10-5z"/>
@@ -102,6 +106,7 @@ function LandingPage() {
         </Link>
 
         <Link to="/fr" className="subject-card maroon-theme">
+          <div className="card-pricing-badge">Rs. 750</div>
           <div className="subject-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -123,6 +128,7 @@ function LandingPage() {
         </Link>
 
         <Link to="/direct-tax" className="subject-card turquoise-theme">
+          <div className="card-pricing-badge">Rs. 750</div>
           <div className="subject-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 11l3 3L22 4"/>

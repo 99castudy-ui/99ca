@@ -15,11 +15,29 @@ const OPENAI_MODEL_OPTIONS = [
   'gpt-4o',       // More capable fallback
 ];
 
+// Calculate similarity between two texts (simple word-based)
+const calculateSimilarity = (text1, text2) => {
+  const normalize = (text) => text.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+  const words1 = new Set(normalize(text1));
+  const words2 = new Set(normalize(text2));
+  
+  if (words1.size === 0 || words2.size === 0) return 0;
+  
+  const intersection = new Set([...words1].filter(w => words2.has(w)));
+  const union = new Set([...words1, ...words2]);
+  
+  return intersection.size / union.size;
+};
+
 // Build the analysis prompt
 const buildAnalysisPrompt = (userAnswer, modelAnswer, question, rubric) => {
   const rubricDescription = rubric.map((r, index) => 
     `${index}. ${r.description} (Max: ${r.maxScore} marks)${r.criterion ? `\n   Expected: ${r.criterion}` : ''}`
   ).join('\n\n');
+
+  // Check if answer is too similar to question (likely copied)
+  const questionSimilarity = calculateSimilarity(userAnswer, question);
+  const isLikelyCopied = questionSimilarity > 0.7; // More than 70% similarity
 
   return `You are an expert CA Final examiner. Analyze the student's answer STEP-BY-STEP by comparing it with the model answer structure.
 
@@ -35,25 +53,43 @@ ${userAnswer}
 **SCORING RUBRIC (each criterion must be scored independently):**
 ${rubricDescription}
 
+**CRITICAL VALIDATION CHECK:**
+
+${isLikelyCopied ? `⚠️ WARNING: The student's answer appears to be largely copied from the question text (${Math.round(questionSimilarity * 100)}% similarity detected). 
+- If the answer is just repeating the question without providing actual calculations, solutions, or explanations, award ZERO marks (0) for ALL criteria.
+- Only award marks if the student has provided actual work, calculations, or substantive answers beyond just restating the question.
+- Be very strict: copying the question is NOT an answer.` : `The student's answer appears to be original work. Proceed with normal evaluation.`}
+
 **ANALYSIS INSTRUCTIONS:**
 
-1. **Step-wise Comparison:**
+1. **First, Validate Answer Quality:**
+   - Check if the student's answer contains actual calculations, solutions, or explanations
+   - If the answer only repeats the question text without providing solutions, award 0 marks
+   - If the answer contains calculations/analysis but is incomplete, award partial marks appropriately
+   - A valid answer must show WORK, not just restate the problem
+
+2. **Step-wise Comparison:**
    - Identify each step/component in the model answer
-   - Check if the student covered each step
+   - Check if the student covered each step with actual work
    - Evaluate accuracy, completeness, and methodology for each step
+   - Ignore steps where the student only copied question text without solving
 
-2. **Criterion-wise Scoring:**
+3. **Criterion-wise Scoring:**
    - Score EACH criterion from 0 to max marks based on the rubric
-   - Award partial marks where appropriate (e.g., 0.5, 0.25 for partial correctness)
+   - If the answer is just the question copied: award 0 marks for ALL criteria
+   - Award partial marks only if there is actual work/calculations (e.g., 0.5, 0.25 for partial correctness)
    - Be strict but fair - accuracy is crucial in CA exams
+   - NO marks for just restating the problem statement
 
-3. **Step-specific Feedback:**
+4. **Step-specific Feedback:**
    - For each criterion, identify which step(s) it relates to
-   - Provide specific feedback on what was done well
+   - If the answer was copied from question, explicitly state: "The answer appears to be a copy of the question text without providing actual solutions. No marks can be awarded."
+   - Provide specific feedback on what was done well (if any actual work was done)
    - Point out errors, omissions, or improvements needed
 
-4. **Overall Assessment:**
-   - Provide comprehensive feedback on the answer structure
+5. **Overall Assessment:**
+   - If answer is just copied question: Clearly state this is not acceptable and explain why
+   - Provide comprehensive feedback on the answer structure (if actual work was provided)
    - Highlight strengths and weaknesses
    - Give actionable suggestions for improvement
 
@@ -92,11 +128,18 @@ ${rubricDescription}
   }
 }
 
+**CRITICAL SCORING RULES:**
+- If the answer is just a copy of the question: ALL scores must be 0 (zero)
+- If the answer contains actual work but is incomplete: award partial marks appropriately
+- If the answer contains actual work and is correct: award full or near-full marks
+- Partial marks: 0.25 for minor attempt, 0.5 for partial correctness, 0.75 for mostly correct
+- Total score must equal sum of individual criterion scores
+- Be strict: Restating the problem is NOT solving it
+
 **IMPORTANT:**
 - Compare step-by-step, not just overall content
 - Each rubric criterion should be scored independently
-- Partial marks: 0.25 for minor attempt, 0.5 for partial correctness, 0.75 for mostly correct
-- Total score must equal sum of individual criterion scores
+- Validate that the answer contains actual solutions, not just the question text
 - Return ONLY valid JSON, no explanatory text outside JSON`;
 };
 
@@ -308,6 +351,15 @@ export const analyzeAnswer = async (userAnswer, modelAnswer, question, rubric) =
   // Validate that the student provided a meaningful answer
   if (!isValidAnswer(userAnswer)) {
     throw new Error('Please provide a complete answer before analysis. Your answer appears to be empty or too short. A meaningful answer should contain at least a few sentences explaining your approach.');
+  }
+
+  // Check if answer is too similar to question (likely just copied)
+  const questionSimilarity = calculateSimilarity(userAnswer, question);
+  if (questionSimilarity > 0.75) {
+    // If more than 75% similar, it's likely just the question copied
+    // Still send to AI for final validation, but the prompt will handle it
+    // This check is mainly for logging/debugging
+    console.warn(`High similarity detected (${Math.round(questionSimilarity * 100)}%) between answer and question. AI will evaluate and likely award zero marks.`);
   }
 
   // Build the analysis prompt

@@ -411,8 +411,8 @@
 }
 
 .dt-badge-section {
-  background: rgba(139, 0, 0, 0.2);
-  color: #ff6b6b;
+  background: rgba(20, 184, 166, 0.2);
+  color: #5eead4;
 }
 
 .dt-question-text {
@@ -695,7 +695,8 @@
 
 .dt-textarea-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 0.5rem;
 }
 
@@ -744,9 +745,31 @@
   border-color: rgba(20, 184, 166, 0.5);
 }
 
+.dt-btn-danger {
+  padding: 0.75rem 1.5rem;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 8px;
+  color: #f87171;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dt-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
 .dt-submit-btn {
   width: 100%;
   margin-top: 1rem;
+}
+
+.dt-submit-inline {
+  width: auto;
+  padding: 0.75rem 1.5rem;
+  margin-top: 0;
 }
 
 .dt-submitted-answer {
@@ -778,6 +801,10 @@
 
 .dt-analyse-btn {
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .dt-loading-spinner {

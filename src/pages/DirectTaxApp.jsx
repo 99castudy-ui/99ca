@@ -1,503 +1,53 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SiteLogo from '../components/SiteLogo';
+import { directTaxMcqQuestions, directTaxLongAnswerQuestions } from '../data/directTaxQuestions.js';
 import { analyzeAnswer } from '../services/geminiService';
 import { GeminiAnalysisUI } from '../components/GeminiAnalysisUI';
-import { directTaxMcqQuestions, directTaxLongAnswerQuestions } from '../data/directTaxQuestions.js';
 import './DirectTaxApp.css';
 
-const DirectTaxDashboard = () => {
-  const navigate = useNavigate();
-  
-  // Calculate counts once - ensure data is available
-  const totalMCQQuestions = directTaxMcqQuestions?.length || 0;
-  const totalLongAnswerQuestions = directTaxLongAnswerQuestions?.length || 0;
-  
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [showExplanation, setShowExplanation] = useState(false);
-  
-  // Lazy initialize progress from localStorage
-  const [progress, setProgress] = useState(() => {
-    try {
-      const savedProgress = localStorage.getItem('directTaxProgress');
-      if (savedProgress) {
-        const parsed = JSON.parse(savedProgress);
-        return {
-          score: parsed.score || { correct: 0, incorrect: 0, total: 0 },
-          answered: parsed.answered || []
-        };
-      }
-    } catch (e) {
-      console.error('Error loading progress:', e);
-    }
-    return {
-      score: { correct: 0, incorrect: 0, total: 0 },
-      answered: []
-    };
-  });
-  
-  const [isContextExpanded, setIsContextExpanded] = useState(true);
-  const [filters, setFilters] = useState({
-    examSession: 'all',
-    topic: 'all',
-    difficulty: 'all'
-  });
-  
-  // Long Answer Practice State
-  const [longAnswerIndex, setLongAnswerIndex] = useState(0);
+// Long Answer Practice Component - Separate component for performance
+const LongAnswerPractice = () => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
-  const [showWorkingNotes, setShowWorkingNotes] = useState(false);
   const [selfScore, setSelfScore] = useState({});
   const [geminiAnalysis, setGeminiAnalysis] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisError, setAnalysisError] = useState(null);
-  
-  // SVG animation state
-  const [animateProgress, setAnimateProgress] = useState(false);
 
-  // Memoize filtered questions
-  const filteredMCQs = useMemo(() => {
-    return directTaxMcqQuestions.filter(q => {
-      if (filters.examSession !== 'all' && q.examSession !== filters.examSession) return false;
-      if (filters.topic !== 'all' && q.topic !== filters.topic) return false;
-      if (filters.difficulty !== 'all' && q.difficulty !== filters.difficulty) return false;
-      return true;
-    });
-  }, [filters.examSession, filters.topic, filters.difficulty]);
+  const currentQuestion = directTaxLongAnswerQuestions?.[currentQuestionIndex];
 
-  // Memoize unique filter values
-  const examSessions = useMemo(() => {
-    return [...new Set(directTaxMcqQuestions.map(q => q.examSession).filter(Boolean))];
-  }, []);
+  // Use regular functions like other working routes - no useMemo needed
+  const getTotalSelfScore = () => {
+    return Object.values(selfScore).reduce((sum, val) => sum + val, 0);
+  };
 
-  const topics = useMemo(() => {
-    return [...new Set(directTaxMcqQuestions.map(q => q.topic).filter(Boolean))];
-  }, []);
+  const getMaxScore = () => {
+    if (!currentQuestion?.rubric) return 0;
+    return currentQuestion.rubric.reduce((sum, r) => sum + r.maxScore, 0);
+  };
 
-  const difficulties = useMemo(() => ['Easy', 'Medium', 'Hard'], []);
-
-  // Current question (memoized)
-  const currentQuestionData = useMemo(() => {
-    return filteredMCQs[currentQuestion] || null;
-  }, [filteredMCQs, currentQuestion]);
-
-  // Memoize answered question lookup
-  const answeredQuestionMap = useMemo(() => {
-    const map = new Map();
-    progress.answered.forEach(a => {
-      map.set(a.id, a);
-    });
-    return map;
-  }, [progress.answered]);
-
-  // Debounced localStorage save
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      try {
-        localStorage.setItem('directTaxProgress', JSON.stringify({
-          score: progress.score,
-          answered: progress.answered
-        }));
-      } catch (e) {
-        console.error('Error saving progress:', e);
-      }
-    }, 500);
-    return () => clearTimeout(timeoutId);
-  }, [progress]);
-
-  // Reset selection when question changes
-  useEffect(() => {
-    if (currentQuestionData) {
-      const answered = answeredQuestionMap.get(currentQuestionData.id);
-      setSelectedAnswer(answered?.selected ?? null);
-      setShowExplanation(!!answered);
-      setIsContextExpanded(true);
-    }
-  }, [currentQuestionData, answeredQuestionMap]);
-
-  // Trigger progress animation when score changes
-  useEffect(() => {
-    setAnimateProgress(true);
-    const timer = setTimeout(() => setAnimateProgress(false), 400);
-    return () => clearTimeout(timer);
-  }, [progress.score.total]);
-
-  // Memoized handlers
-  const handleAnswerSelect = useCallback((optionId) => {
-    if (!showExplanation && !answeredQuestionMap.has(currentQuestionData?.id)) {
-      setSelectedAnswer(optionId);
-    }
-  }, [showExplanation, currentQuestionData, answeredQuestionMap]);
-
-  const handleAnswerSubmit = useCallback(() => {
-    if (selectedAnswer === null || !currentQuestionData) {
-      return;
-    }
-    
-    const questionId = currentQuestionData.id;
-    
-    // Check if already answered
-    if (answeredQuestionMap.has(questionId)) {
-      setShowExplanation(true);
-      return;
-    }
-    
-    const isCorrect = selectedAnswer === currentQuestionData.correctAnswer;
-    
-    setShowExplanation(true);
-    setProgress(prev => ({
-      score: {
-        correct: prev.score.correct + (isCorrect ? 1 : 0),
-        incorrect: prev.score.incorrect + (isCorrect ? 0 : 1),
-        total: prev.score.total + 1
-      },
-      answered: [...prev.answered, {
-        id: questionId,
-        selected: selectedAnswer,
-        correct: isCorrect
-      }]
-    }));
-  }, [selectedAnswer, currentQuestionData, answeredQuestionMap]);
-
-  const nextQuestion = useCallback(() => {
-    if (currentQuestion < filteredMCQs.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
-    }
-  }, [currentQuestion, filteredMCQs.length]);
-
-  const prevQuestion = useCallback(() => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
-    }
-  }, [currentQuestion]);
-
-  const handleQuestionSelect = useCallback((index) => {
-    setCurrentQuestion(index);
-  }, []);
-
-  const handleFilterChange = useCallback((filterType, value) => {
-    setFilters(prev => ({ ...prev, [filterType]: value }));
-    setCurrentQuestion(0);
-  }, []);
-
-  const toggleContext = useCallback(() => {
-    setIsContextExpanded(prev => !prev);
-  }, []);
-
-  // Memoize topic progress calculations
-  const topicProgress = useMemo(() => {
-    return topics.map(topic => {
-      const topicQuestions = directTaxMcqQuestions.filter(q => q.topic === topic);
-      const answeredCount = progress.answered.filter(a => 
-        topicQuestions.some(q => q.id === a.id)
-      ).length;
-      const progressPercent = (answeredCount / Math.max(topicQuestions.length, 1)) * 100;
-      
-      return {
-        topic,
-        answeredCount,
-        totalCount: topicQuestions.length,
-        progress: progressPercent
-      };
-    });
-  }, [topics, progress.answered]);
-
-  // Calculate progress percentage for SVG
-  const progressPercentage = useMemo(() => {
-    return Math.round((progress.score.correct / Math.max(progress.score.total, 1)) * 100);
-  }, [progress.score.correct, progress.score.total]);
-
-  const progressCircumference = 283; // 2 * PI * 45
-  const progressOffset = useMemo(() => {
-    return progressCircumference - (progress.score.total / Math.max(totalMCQQuestions, 1)) * progressCircumference;
-  }, [progress.score.total, totalMCQQuestions, progressCircumference]);
-
-  // Render methods for each tab
-  const renderDashboard = useCallback(() => {
-    return (
-      <div className="dt-dashboard">
-        <div className="dt-hero">
-          <div className="dt-progress-ring">
-            <svg viewBox="0 0 100 100">
-              <circle className="dt-progress-bg" cx="50" cy="50" r="45" />
-              <circle 
-                className="dt-progress-fill" 
-                cx="50" cy="50" r="45"
-                strokeDasharray={`${progressCircumference} ${progressCircumference}`}
-                strokeDashoffset={progressOffset}
-                style={{ 
-                  transition: animateProgress ? 'stroke-dashoffset 0.35s ease-in-out' : 'none',
-                  willChange: animateProgress ? 'stroke-dashoffset' : 'auto'
-                }}
-              />
-            </svg>
-            <div className="dt-progress-text">
-              <span className="dt-progress-value">{progressPercentage}%</span>
-              <span className="dt-progress-label">Accuracy</span>
-            </div>
-          </div>
-          <div className="dt-hero-info">
-            <h1>Direct Tax Laws & International Taxation</h1>
-            <p>CA Final Paper 4 - Practice Module</p>
-          </div>
-        </div>
-
-        <div className="dt-stats-grid">
-          <div className="dt-stat-card">
-            <span className="dt-stat-value">{progress.score.total}</span>
-            <span className="dt-stat-label">Questions Solved</span>
-          </div>
-          <div className="dt-stat-card">
-            <span className="dt-stat-value">{progress.score.correct}</span>
-            <span className="dt-stat-label">Correct Answers</span>
-          </div>
-          <div className="dt-stat-card">
-            <span className="dt-stat-value">{totalMCQQuestions}</span>
-            <span className="dt-stat-label">Total MCQs</span>
-          </div>
-          <div className="dt-stat-card">
-            <span className="dt-stat-value">{totalLongAnswerQuestions}</span>
-            <span className="dt-stat-label">Long Answer Questions</span>
-          </div>
-        </div>
-
-        <div className="dt-topics-grid">
-          <h2>Topics</h2>
-          <div className="dt-topics">
-            {topicProgress.map(({ topic, answeredCount, totalCount, progress: progressPercent }) => (
-              <div key={topic} className="dt-topic-card">
-                <h3>{topic}</h3>
-                <div className="dt-topic-progress">
-                  <div 
-                    className="dt-topic-progress-fill" 
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-                <span>{answeredCount}/{totalCount}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }, [progress, totalMCQQuestions, totalLongAnswerQuestions, topicProgress, progressPercentage, progressOffset, animateProgress, progressCircumference]);
-
-  // Memoized question palette button component
-  const QuestionPaletteButton = React.memo(({ question, index, isActive, status, onClick }) => (
-    <button
-      key={question.id}
-      className={`dt-palette-btn ${status} ${isActive ? 'active' : ''}`}
-      onClick={onClick}
-    >
-      {index + 1}
-    </button>
-  ));
-
-  const renderMCQ = useCallback(() => {
-    if (filteredMCQs.length === 0) {
-      return (
-        <div className="dt-no-questions">
-          <p>No questions match your filters</p>
-          <p>Total questions available: {totalMCQQuestions}</p>
-          <p>Try adjusting your filter settings.</p>
-        </div>
-      );
-    }
-
-    if (!currentQuestionData) {
-      return <div className="dt-no-questions">Question not found at index {currentQuestion}</div>;
-    }
-    
-    const answered = answeredQuestionMap.get(currentQuestionData.id);
-
-    return (
-      <div className="dt-mcq-container">
-        <div className="dt-mcq-sidebar">
-          <div className="dt-filters">
-            <select 
-              value={filters.examSession} 
-              onChange={e => handleFilterChange('examSession', e.target.value)}
-            >
-              <option value="all">All Sessions</option>
-              {examSessions.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <select 
-              value={filters.topic} 
-              onChange={e => handleFilterChange('topic', e.target.value)}
-            >
-              <option value="all">All Topics</option>
-              {topics.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <select 
-              value={filters.difficulty} 
-              onChange={e => handleFilterChange('difficulty', e.target.value)}
-            >
-              <option value="all">All Difficulties</option>
-              {difficulties.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </div>
-          
-          <div className="dt-question-palette">
-            {filteredMCQs.map((q, idx) => {
-              const ans = answeredQuestionMap.get(q.id);
-              let status = 'unanswered';
-              if (ans) status = ans.correct ? 'correct' : 'incorrect';
-              
-              return (
-                <QuestionPaletteButton
-                  key={q.id}
-                  question={q}
-                  index={idx}
-                  isActive={idx === currentQuestion}
-                  status={status}
-                  onClick={() => handleQuestionSelect(idx)}
-                />
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="dt-mcq-main">
-          {currentQuestionData.caseContext && (
-            <div className="dt-case-context-panel">
-              <div className="dt-case-context-header" onClick={toggleContext}>
-                <span>📋 Case Study Context</span>
-                <span className="dt-toggle-icon">{isContextExpanded ? '▼' : '▶'}</span>
-              </div>
-              {isContextExpanded && (
-                <div className="dt-case-context-body">
-                  <pre>{currentQuestionData.caseContext}</pre>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="dt-question-header">
-            <span className="dt-badge dt-badge-session">{currentQuestionData.examSession}</span>
-            <span className="dt-badge dt-badge-topic">{currentQuestionData.topic}</span>
-            {currentQuestionData.sectionReference && (
-              <span className="dt-badge dt-badge-section">{currentQuestionData.sectionReference}</span>
-            )}
-            <span className={`dt-badge dt-badge-difficulty dt-${currentQuestionData.difficulty?.toLowerCase() || 'medium'}`}>
-              {currentQuestionData.difficulty}
-            </span>
-            <span className="dt-badge dt-badge-marks">{currentQuestionData.marks} Marks</span>
-          </div>
-
-          <div className="dt-question-text">
-            <p><strong>Q{currentQuestion + 1}.</strong> {currentQuestionData.question}</p>
-          </div>
-
-          <div className="dt-options">
-            {currentQuestionData.options.map((option, idx) => {
-              let optionClass = 'dt-option';
-              if (showExplanation || answered) {
-                if (idx === currentQuestionData.correctAnswer) optionClass += ' correct';
-                else if (idx === (answered?.selected ?? selectedAnswer)) optionClass += ' incorrect';
-              } else if (idx === selectedAnswer) {
-                optionClass += ' selected';
-              }
-
-              return (
-                <button
-                  key={idx}
-                  className={optionClass}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleAnswerSelect(idx);
-                  }}
-                  disabled={showExplanation || !!answered}
-                  type="button"
-                >
-                  <span className="dt-option-label">{String.fromCharCode(65 + idx)}</span>
-                  <span className="dt-option-text">{option}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {!showExplanation && !answered && (
-            <button 
-              className="dt-submit-btn"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleAnswerSubmit();
-              }}
-              disabled={selectedAnswer === null || selectedAnswer === undefined}
-            >
-              Submit Answer
-            </button>
-          )}
-
-          {(showExplanation || answered) && (
-            <div className="dt-explanation">
-              <h3>Explanation</h3>
-              <div className="dt-explanation-content">
-                {currentQuestionData.explanation.split('\n').map((line, idx) => (
-                  <p key={idx}>{line}</p>
-                ))}
-              </div>
-              
-              {(answered?.selected ?? selectedAnswer) !== currentQuestionData.correctAnswer && 
-                currentQuestionData.whereWentWrong && currentQuestionData.whereWentWrong[answered?.selected ?? selectedAnswer] && (
-                <div className="dt-where-wrong">
-                  <h4>Where You Went Wrong</h4>
-                  <p>{currentQuestionData.whereWentWrong[answered?.selected ?? selectedAnswer]}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="dt-navigation">
-            <button onClick={prevQuestion} disabled={currentQuestion === 0}>
-              ← Previous
-            </button>
-            <span>{currentQuestion + 1} / {filteredMCQs.length}</span>
-            <button onClick={nextQuestion} disabled={currentQuestion === filteredMCQs.length - 1}>
-              Next →
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }, [filteredMCQs, currentQuestion, currentQuestionData, selectedAnswer, showExplanation, filters, examSessions, topics, difficulties, answeredQuestionMap, isContextExpanded, handleFilterChange, handleQuestionSelect, handleAnswerSelect, handleAnswerSubmit, prevQuestion, nextQuestion, toggleContext, totalMCQQuestions]);
-
-  // Long Answer Practice Handlers
-  const handleLongAnswerSubmit = useCallback(() => {
+  const handleSubmit = () => {
     if (userAnswer.trim()) {
       setIsSubmitted(true);
     }
-  }, [userAnswer]);
+  };
 
-  const handleSelfScore = useCallback((criterionIndex, score) => {
+  const handleSelfScore = (criterionIndex, score) => {
     setSelfScore(prev => ({
       ...prev,
       [criterionIndex]: score
     }));
-  }, []);
+  };
 
-  const getTotalSelfScore = useCallback(() => {
-    return Object.values(selfScore).reduce((sum, val) => sum + val, 0);
-  }, [selfScore]);
-
-  const getMaxScore = useCallback(() => {
-    const currentQ = directTaxLongAnswerQuestions?.[longAnswerIndex];
-    return currentQ?.rubric?.reduce((sum, r) => sum + r.maxScore, 0) || 0;
-  }, [longAnswerIndex]);
-
-  const handleGeminiAnalysis = useCallback(async () => {
+  const handleGeminiAnalysis = async () => {
     if (!userAnswer.trim()) {
       setAnalysisError('Please submit your answer first');
       return;
     }
 
-    const currentQ = directTaxLongAnswerQuestions?.[longAnswerIndex];
+    const currentQ = directTaxLongAnswerQuestions?.[currentQuestionIndex];
     if (!currentQ) return;
 
     setIsAnalyzing(true);
@@ -518,336 +68,733 @@ const DirectTaxDashboard = () => {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [userAnswer, longAnswerIndex]);
+  };
 
-  const resetLongAnswerState = useCallback(() => {
+  const handleNext = () => {
+    if (currentQuestionIndex < directTaxLongAnswerQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setUserAnswer('');
+      setIsSubmitted(false);
+      setShowSolution(false);
+      setSelfScore({});
+      setGeminiAnalysis(null);
+      setAnalysisError(null);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+      setUserAnswer('');
+      setIsSubmitted(false);
+      setShowSolution(false);
+      setSelfScore({});
+      setGeminiAnalysis(null);
+      setAnalysisError(null);
+    }
+  };
+
+  const handlePaletteClick = (index) => {
+    setCurrentQuestionIndex(index);
     setUserAnswer('');
     setIsSubmitted(false);
     setShowSolution(false);
-    setShowWorkingNotes(false);
     setSelfScore({});
     setGeminiAnalysis(null);
     setAnalysisError(null);
-  }, []);
+  };
 
-  const handleLongAnswerNext = useCallback(() => {
-    if (longAnswerIndex < totalLongAnswerQuestions - 1) {
-      setLongAnswerIndex(prev => prev + 1);
-      resetLongAnswerState();
-    }
-  }, [longAnswerIndex, totalLongAnswerQuestions, resetLongAnswerState]);
+  if (!directTaxLongAnswerQuestions || directTaxLongAnswerQuestions.length === 0) {
+    return <div className="dt-no-questions">No long answer questions available</div>;
+  }
 
-  const handleLongAnswerPrevious = useCallback(() => {
-    if (longAnswerIndex > 0) {
-      setLongAnswerIndex(prev => prev - 1);
-      resetLongAnswerState();
-    }
-  }, [longAnswerIndex, resetLongAnswerState]);
+  if (!currentQuestion) return null;
 
-  const handleLongAnswerPaletteClick = useCallback((index) => {
-    setLongAnswerIndex(index);
-    resetLongAnswerState();
-  }, [resetLongAnswerState]);
-
-  // Memoize word count calculation
-  const wordCount = useMemo(() => {
-    return userAnswer.split(/\s+/).filter(w => w).length;
-  }, [userAnswer]);
-
-  const renderLongAnswer = useCallback(() => {
-    const questions = Array.isArray(directTaxLongAnswerQuestions) 
-      ? directTaxLongAnswerQuestions 
-      : [];
-    const count = questions.length;
-    
-    if (count === 0) {
-      return (
-        <div className="dt-long-answer">
-          <div className="dt-no-questions">
-            <h2>Long Answer Practice</h2>
-            <p>No long answer questions available yet.</p>
-          </div>
-        </div>
-      );
-    }
-
-    const currentQ = questions[longAnswerIndex];
-    if (!currentQ) return null;
-
-    return (
-      <div className="dt-long-answer-practice">
+  return (
+    <div className="dt-long-answer-practice">
+      <div className="dt-case-study-container">
         <div className="dt-practice-header">
           <div className="dt-question-nav">
             <button 
               className="dt-nav-arrow" 
-              onClick={handleLongAnswerPrevious}
-              disabled={longAnswerIndex === 0}
+              onClick={handlePrevious}
+              disabled={currentQuestionIndex === 0}
             >
               ←
             </button>
             <span className="dt-question-counter">
-              Question {longAnswerIndex + 1} of {count}
+              Question {currentQuestionIndex + 1} of {directTaxLongAnswerQuestions.length}
             </span>
             <button 
               className="dt-nav-arrow" 
-              onClick={handleLongAnswerNext}
-              disabled={longAnswerIndex === count - 1}
+              onClick={handleNext}
+              disabled={currentQuestionIndex === directTaxLongAnswerQuestions.length - 1}
             >
               →
             </button>
           </div>
         </div>
 
-        <div className="dt-case-study-container">
-          <div className="dt-question-meta">
-            <span className="dt-badge dt-badge-session">{currentQ.examSession}</span>
-            <span className="dt-badge dt-badge-topic">{currentQ.topic}</span>
-            <span className="dt-badge dt-badge-marks">{currentQ.marks} Marks</span>
+        <div className="dt-question-meta">
+          <span className="dt-badge dt-badge-session">{currentQuestion.examSession}</span>
+          <span className="dt-badge dt-badge-topic">{currentQuestion.topic}</span>
+          <span className="dt-badge dt-badge-marks">{currentQuestion.marks} Marks</span>
+        </div>
+
+        <div className="dt-question-section">
+          <h3>Problem Statement</h3>
+          <div className="dt-case-study-text">
+            <pre>{currentQuestion.question}</pre>
           </div>
+        </div>
 
-          <div className="dt-question-section">
-            <h3>Problem Statement</h3>
-            <div className="dt-question-text dt-case-study-text">
-              <pre>{currentQ.question}</pre>
-            </div>
-          </div>
-
-          <div className="dt-answer-section">
-            <h3>Your Answer</h3>
-            {!isSubmitted ? (
-              <>
-                <div className="dt-answer-input-container">
-                  <textarea
-                    className="dt-answer-textarea"
-                    value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    placeholder="Write your detailed answer here...
-
-For calculation questions:
-• Use tables where appropriate
-• Show step-by-step working
-• Include formulas and assumptions
-
-For analysis questions:
-• Structure your answer with clear headings
-• Provide reasoning for each point
-• Include relevant calculations"
-                    rows={15}
-                  />
-                  <div className="dt-textarea-footer">
-                    <span className="dt-word-count">{wordCount} words</span>
-                  </div>
-                </div>
+        <div className="dt-answer-section">
+          <h3>Your Answer</h3>
+          {!isSubmitted ? (
+            <>
+              <textarea
+                className="dt-answer-textarea"
+                value={userAnswer}
+                onChange={(e) => setUserAnswer(e.target.value)}
+                placeholder="Write your detailed answer here..."
+                rows={10}
+              />
+              <div className="dt-textarea-footer">
+                <span className="dt-word-count">{userAnswer.split(/\s+/).filter(w => w).length} words</span>
                 <button 
-                  className="dt-btn-primary dt-submit-btn"
-                  onClick={handleLongAnswerSubmit}
+                  className="dt-submit-btn dt-submit-inline"
+                  onClick={handleSubmit}
                   disabled={!userAnswer.trim()}
                 >
                   Submit Answer
                 </button>
-              </>
-            ) : (
-              <div className="dt-submitted-answer">
-                <div className="dt-answer-display">
-                  <pre>{userAnswer}</pre>
-                </div>
-                <div className="dt-answer-actions">
-                  <button 
-                    className="dt-btn-primary dt-analyse-btn"
-                    onClick={handleGeminiAnalysis}
-                    disabled={isAnalyzing}
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <span className="dt-loading-spinner"></span>
-                        Analysing...
-                      </>
-                    ) : (
-                      'Analyse'
-                    )}
-                  </button>
-                  <button 
-                    className="dt-btn-secondary"
-                    onClick={() => setShowSolution(!showSolution)}
-                  >
-                    {showSolution ? 'Hide' : 'View'} Model Answer
-                  </button>
-                </div>
-                {analysisError && (
-                  <div className="dt-error-message" style={{ marginTop: '1rem' }}>
-                    <p>⚠️ {analysisError}</p>
-                    <button className="dt-retry-btn" onClick={handleGeminiAnalysis}>Retry</button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Gemini AI Analysis Section */}
-          {isSubmitted && geminiAnalysis && (
-            <GeminiAnalysisUI
-              geminiAnalysis={geminiAnalysis}
-              rubric={currentQ.rubric}
-              selfScore={selfScore}
-              getTotalSelfScore={getTotalSelfScore}
-              getMaxScore={getMaxScore}
-            />
-          )}
-
-          {showSolution && (
-            <>
-              <div className="dt-model-answer-section">
-                <h3>Model Answer</h3>
-                <div className="dt-model-answer-content">
-                  <pre>{currentQ.modelAnswer}</pre>
-                </div>
-                
-                {/* Working Notes Expandable Section */}
-                {currentQ.workingNotes && (
-                  <div className="dt-working-notes-section">
-                    <button 
-                      className="dt-working-notes-toggle"
-                      onClick={() => setShowWorkingNotes(!showWorkingNotes)}
-                    >
-                      <svg 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2"
-                        style={{ transform: showWorkingNotes ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
-                      >
-                        <polyline points="6 9 12 15 18 9"/>
-                      </svg>
-                      <span>Working Notes</span>
-                    </button>
-                    {showWorkingNotes && (
-                      <div className="dt-working-notes-content">
-                        <pre>{currentQ.workingNotes}</pre>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="dt-self-evaluation-section">
-                <h3>Self Evaluation</h3>
-                <p className="dt-evaluation-instructions">
-                  Compare your answer with the model answer and score yourself on each criterion:
-                </p>
-                <div className="dt-rubric-grid">
-                  {currentQ.rubric?.map((criterion, index) => (
-                    <div key={index} className="dt-rubric-item">
-                      <div className="dt-rubric-criterion">
-                        <span className="dt-criterion-text">{criterion.description}</span>
-                        <span className="dt-criterion-max">Max: {criterion.maxScore} marks</span>
-                      </div>
-                      <div className="dt-score-input">
-                        <input
-                          type="number"
-                          min="0"
-                          max={criterion.maxScore}
-                          step="0.5"
-                          value={selfScore[index] || ''}
-                          onChange={(e) => handleSelfScore(index, parseFloat(e.target.value) || 0)}
-                          placeholder="0"
-                        />
-                        <span>/ {criterion.maxScore}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="dt-total-score">
-                  <span>Total Self Score:</span>
-                  <span className="dt-score-value">
-                    {getTotalSelfScore()} / {getMaxScore()}
-                  </span>
-                  <span className="dt-percentage">
-                    ({getMaxScore() > 0 ? ((getTotalSelfScore() / getMaxScore()) * 100).toFixed(1) : 0}%)
-                  </span>
-                </div>
-              </div>
-
-              <div className="dt-improvement-tips">
-                <h4>Key Takeaways & Improvement Tips</h4>
-                <ul>
-                  <li>Always show step-by-step calculations with proper formulas</li>
-                  <li>Present data in tabular format for clarity</li>
-                  <li>Include brief reasoning for each calculation step</li>
-                  <li>Check if all parts of the question are addressed</li>
-                  <li>Verify your final answers with logical checks</li>
-                </ul>
               </div>
             </>
+          ) : (
+            <div className="dt-submitted-answer">
+              <div className="dt-answer-display">
+                <pre>{userAnswer}</pre>
+              </div>
+              <div className="dt-answer-actions">
+                <button 
+                  className="dt-btn-primary dt-analyse-btn"
+                  onClick={handleGeminiAnalysis}
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <span className="dt-loading-spinner"></span>
+                      Analysing...
+                    </>
+                  ) : (
+                    'Analyse'
+                  )}
+                </button>
+                <button 
+                  className="dt-btn-secondary" 
+                  onClick={() => setShowSolution(!showSolution)}
+                >
+                  {showSolution ? 'Hide' : 'View'} Model Answer
+                </button>
+              </div>
+              {analysisError && (
+                <div className="dt-error-message">
+                  <p>⚠️ {analysisError}</p>
+                  <button className="dt-retry-btn" onClick={handleGeminiAnalysis}>Retry</button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
-        <div className="dt-case-study-palette">
-          <h4>Questions</h4>
-          <div className="dt-palette-list">
-            {questions.map((q, index) => (
-              <button
-                key={q.id || index}
-                className={`dt-palette-item ${index === longAnswerIndex ? 'current' : ''}`}
-                onClick={() => handleLongAnswerPaletteClick(index)}
+        {/* Gemini Analysis UI */}
+        {isSubmitted && geminiAnalysis && (
+          <GeminiAnalysisUI
+            geminiAnalysis={geminiAnalysis}
+            rubric={currentQuestion.rubric}
+            selfScore={selfScore}
+            getTotalSelfScore={getTotalSelfScore}
+            getMaxScore={getMaxScore}
+          />
+        )}
+
+        {showSolution && (
+          <>
+            <div className="dt-model-answer-section">
+              <h3>Model Answer</h3>
+              <div className="dt-model-answer-content">
+                <pre>{currentQuestion.modelAnswer}</pre>
+              </div>
+            </div>
+
+            <div className="dt-self-evaluation-section">
+              <h3>Self Evaluation</h3>
+              <div className="dt-rubric-grid">
+                {currentQuestion.rubric?.map((criterion, index) => (
+                  <div key={index} className="dt-rubric-item">
+                    <div className="dt-rubric-criterion">
+                      <span className="dt-criterion-text">{criterion.description}</span>
+                      <span className="dt-criterion-max">Max: {criterion.maxScore}</span>
+                    </div>
+                    <div className="dt-score-input">
+                      <input
+                        type="number"
+                        min="0"
+                        max={criterion.maxScore}
+                        step="0.5"
+                        value={selfScore[index] || ''}
+                        onChange={(e) => handleSelfScore(index, parseFloat(e.target.value) || 0)}
+                        placeholder="0"
+                      />
+                      <span>/ {criterion.maxScore}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="dt-total-score">
+                <span>Total:</span>
+                <span className="dt-score-value">{getTotalSelfScore()} / {getMaxScore()}</span>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="dt-case-study-palette">
+        <h4>Questions</h4>
+        <div className="dt-palette-list">
+          {directTaxLongAnswerQuestions.map((q, index) => (
+            <button
+              key={q.id}
+              className={`dt-palette-item ${index === currentQuestionIndex ? 'current' : ''}`}
+              onClick={() => handlePaletteClick(index)}
+            >
+              <span className="dt-case-number">Q{index + 1}</span>
+              <span className="dt-case-topic">{q.topic}</span>
+              <span className="dt-case-marks">{q.marks}M</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DirectTaxDashboard = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [isContextExpanded, setIsContextExpanded] = useState(true);
+  const [mcqAnswers, setMcqAnswers] = useState({});
+  const [mcqScore, setMcqScore] = useState({ correct: 0, incorrect: 0 });
+  const [filters, setFilters] = useState({
+    examSession: 'all',
+    topic: 'all',
+    difficulty: 'all'
+  });
+
+  const totalMCQQuestions = directTaxMcqQuestions?.length || 0;
+  const totalLongAnswerQuestions = directTaxLongAnswerQuestions?.length || 0;
+
+  const [progress, setProgress] = useState(() => {
+    try {
+      const saved = localStorage.getItem('directTaxProgress');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Error loading progress:', e);
+    }
+    return { score: { correct: 0, incorrect: 0, total: 0 }, answered: [] };
+  });
+
+
+  // Validate and clean localStorage on mount - only clean invalid data, don't reset valid progress
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('directTaxProgress');
+      if (!saved) return;
+      
+      const parsed = JSON.parse(saved);
+      
+      // Check if data structure is valid
+      if (!parsed.score || typeof parsed.score !== 'object' || !Array.isArray(parsed.answered)) {
+        console.log('Invalid progress data structure, clearing...');
+        localStorage.removeItem('directTaxProgress');
+        setProgress({
+          score: { correct: 0, incorrect: 0, total: 0 },
+          answered: []
+        });
+        return;
+      }
+      
+      // Ensure score has required fields
+      if (typeof parsed.score.correct !== 'number' || typeof parsed.score.incorrect !== 'number' || typeof parsed.score.total !== 'number') {
+        console.log('Invalid score structure, resetting...');
+        setProgress({
+          score: { correct: 0, incorrect: 0, total: 0 },
+          answered: parsed.answered || []
+        });
+        return;
+      }
+      
+      // Remove answers for questions that no longer exist
+      const validQuestionIds = new Set(directTaxMcqQuestions?.map(q => q.id) || []);
+      const validAnswers = parsed.answered.filter(a => 
+        a && typeof a.id !== 'undefined' && validQuestionIds.has(a.id)
+      );
+      
+      // Only update if we actually removed invalid answers
+      if (validAnswers.length !== parsed.answered.length) {
+        console.log(`Cleaning ${parsed.answered.length - validAnswers.length} invalid answers...`);
+        const correctCount = validAnswers.filter(a => a.correct).length;
+        setProgress({
+          score: {
+            correct: correctCount,
+            incorrect: validAnswers.length - correctCount,
+            total: validAnswers.length
+          },
+          answered: validAnswers
+        });
+      }
+    } catch (e) {
+      console.error('Error validating progress:', e);
+      localStorage.removeItem('directTaxProgress');
+      setProgress({
+        score: { correct: 0, incorrect: 0, total: 0 },
+        answered: []
+      });
+    }
+  }, []); // Run only once on mount
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      localStorage.setItem('directTaxProgress', JSON.stringify(progress));
+    }, 500);
+    return () => clearTimeout(timeoutId);
+  }, [progress]);
+
+  // Memoize filtered questions
+  const filteredMCQs = useMemo(() => {
+    if (!directTaxMcqQuestions) return [];
+    return directTaxMcqQuestions.filter(q => {
+      if (filters.examSession !== 'all' && q.examSession !== filters.examSession) return false;
+      if (filters.topic !== 'all' && q.topic !== filters.topic) return false;
+      if (filters.difficulty !== 'all' && q.difficulty !== filters.difficulty) return false;
+      return true;
+    });
+  }, [filters.examSession, filters.topic, filters.difficulty]);
+
+  const currentQuestionData = useMemo(() => {
+    return filteredMCQs[currentQuestion] || null;
+  }, [filteredMCQs, currentQuestion]);
+
+  const examSessions = useMemo(() => {
+    return [...new Set(directTaxMcqQuestions?.map(q => q.examSession).filter(Boolean) || [])];
+  }, []);
+
+  const topics = useMemo(() => {
+    return [...new Set(directTaxMcqQuestions?.map(q => q.topic).filter(Boolean) || [])];
+  }, []);
+
+  const answeredQuestionMap = useMemo(() => {
+    const map = new Map();
+    progress.answered.forEach(a => map.set(a.id, a));
+    return map;
+  }, [progress.answered]);
+
+  // Dashboard calculations
+  const progressPercentage = useMemo(() => {
+    return Math.round((progress.score.correct / Math.max(progress.score.total, 1)) * 100);
+  }, [progress.score.correct, progress.score.total]);
+
+  const circumference = 283;
+  const progressOffset = useMemo(() => {
+    return circumference - (progress.score.total / Math.max(totalMCQQuestions, 1)) * circumference;
+  }, [progress.score.total, totalMCQQuestions]);
+
+  const topicProgress = useMemo(() => {
+    return topics.map(topic => {
+      const topicQuestions = directTaxMcqQuestions.filter(q => q.topic === topic);
+      const answeredCount = progress.answered.filter(a =>
+        topicQuestions.some(q => q.id === a.id)
+      ).length;
+      const progressPercent = (answeredCount / Math.max(topicQuestions.length, 1)) * 100;
+      return { topic, answeredCount, totalCount: topicQuestions.length, progress: progressPercent };
+    });
+  }, [topics, progress.answered]);
+
+  // Reset context expansion when question changes
+  useEffect(() => {
+    setIsContextExpanded(true);
+  }, [currentQuestion]);
+
+  const handleFilterChange = useCallback((filterType, value) => {
+    setFilters(prev => ({ ...prev, [filterType]: value }));
+    setCurrentQuestion(0);
+    setSelectedAnswer(null);
+    setIsSubmitted(false);
+    setShowExplanation(false);
+  }, []);
+
+  // Ensure current question index is valid when filtered questions change
+  useEffect(() => {
+    if (filteredMCQs.length > 0 && currentQuestion >= filteredMCQs.length) {
+      setCurrentQuestion(0);
+      setSelectedAnswer(null);
+      setIsSubmitted(false);
+      setShowExplanation(false);
+    }
+  }, [filteredMCQs.length, currentQuestion]);
+
+  const handleQuestionSelect = useCallback((index) => {
+    setCurrentQuestion(index);
+    const question = filteredMCQs[index];
+    if (question) {
+      setSelectedAnswer(mcqAnswers[question.id] ?? null);
+      setIsSubmitted(!!mcqAnswers[question.id]);
+      setShowExplanation(false);
+    }
+  }, [filteredMCQs, mcqAnswers]);
+
+  const handleAnswerSelect = useCallback((optionId) => {
+    if (!isSubmitted) {
+      setSelectedAnswer(optionId);
+    }
+  }, [isSubmitted]);
+
+  const toggleContext = useCallback(() => {
+    setIsContextExpanded(prev => !prev);
+  }, []);
+
+  const handleAnswerSubmit = useCallback(() => {
+    if (selectedAnswer === null || !currentQuestionData) return;
+    
+    setIsSubmitted(true);
+    setMcqAnswers(prev => ({
+      ...prev,
+      [currentQuestionData.id]: selectedAnswer
+    }));
+    
+    if (selectedAnswer === currentQuestionData.correctAnswer) {
+      setMcqScore(prev => ({ ...prev, correct: prev.correct + 1 }));
+    } else {
+      setMcqScore(prev => ({ ...prev, incorrect: prev.incorrect + 1 }));
+    }
+  }, [selectedAnswer, currentQuestionData]);
+
+  const nextQuestion = useCallback(() => {
+    if (currentQuestion < filteredMCQs.length - 1) {
+      const nextIndex = currentQuestion + 1;
+      const nextQuestion = filteredMCQs[nextIndex];
+      setCurrentQuestion(nextIndex);
+      setSelectedAnswer(mcqAnswers[nextQuestion?.id] ?? null);
+      setIsSubmitted(!!mcqAnswers[nextQuestion?.id]);
+      setShowExplanation(false);
+    }
+  }, [currentQuestion, filteredMCQs, mcqAnswers]);
+
+  const prevQuestion = useCallback(() => {
+    if (currentQuestion > 0) {
+      const prevIndex = currentQuestion - 1;
+      const prevQuestion = filteredMCQs[prevIndex];
+      setCurrentQuestion(prevIndex);
+      setSelectedAnswer(mcqAnswers[prevQuestion?.id] ?? null);
+      setIsSubmitted(!!mcqAnswers[prevQuestion?.id]);
+      setShowExplanation(false);
+    }
+  }, [currentQuestion, filteredMCQs, mcqAnswers]);
+
+  // FULL DASHBOARD RENDER
+  const renderDashboard = () => (
+    <div className="dt-dashboard">
+      <div className="dt-hero">
+        <div className="dt-progress-ring" style={{ position: 'relative', width: '120px', height: '120px' }}>
+          <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+            <circle className="dt-progress-bg" cx="50" cy="50" r="45" fill="none" stroke="#2d3648" strokeWidth="8" />
+            <circle
+              className="dt-progress-fill"
+              cx="50" cy="50" r="45"
+              fill="none" stroke="#14b8a6" strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={progressOffset}
+              style={{ transition: 'stroke-dashoffset 0.35s ease-in-out' }}
+            />
+          </svg>
+          <div className="dt-progress-text" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+            <span className="dt-progress-value">{progressPercentage}%</span>
+            <span className="dt-progress-label">Accuracy</span>
+          </div>
+        </div>
+        <div className="dt-hero-info">
+          <h1>Direct Tax Laws & International Taxation</h1>
+          <p>CA Final Paper 4 - Practice Module</p>
+        </div>
+      </div>
+
+      <div className="dt-stats-grid">
+        <div className="dt-stat-card">
+          <span className="dt-stat-value">{progress.score.total}</span>
+          <span className="dt-stat-label">Questions Solved</span>
+        </div>
+        <div className="dt-stat-card">
+          <span className="dt-stat-value">{progress.score.correct}</span>
+          <span className="dt-stat-label">Correct Answers</span>
+        </div>
+        <div className="dt-stat-card">
+          <span className="dt-stat-value">{totalMCQQuestions}</span>
+          <span className="dt-stat-label">Total MCQs</span>
+        </div>
+        <div className="dt-stat-card">
+          <span className="dt-stat-value">{totalLongAnswerQuestions}</span>
+          <span className="dt-stat-label">Long Answer Questions</span>
+        </div>
+      </div>
+
+      <div style={{ marginTop: '1.5rem', marginBottom: '2rem' }}>
+        <button 
+          onClick={() => {
+            if (window.confirm('Reset all progress? This cannot be undone.')) {
+              localStorage.removeItem('directTaxProgress');
+              setProgress({
+                score: { correct: 0, incorrect: 0, total: 0 },
+                answered: []
+              });
+              setCurrentQuestion(0);
+              setSelectedAnswer(null);
+              setShowExplanation(false);
+              alert('Progress reset successfully!');
+            }
+          }}
+          style={{
+            padding: '0.75rem 1.5rem',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '8px',
+            color: '#f87171',
+            cursor: 'pointer',
+            fontSize: '0.875rem'
+          }}
+        >
+          🗑️ Reset All Progress
+        </button>
+      </div>
+
+      <div className="dt-topics-grid">
+        <h2>Topics</h2>
+        <div className="dt-topics">
+          {topicProgress.map(({ topic, answeredCount, totalCount, progress: progressPercent }) => (
+            <div key={topic} className="dt-topic-card">
+              <h3>{topic}</h3>
+              <div className="dt-topic-progress">
+                <div className="dt-topic-progress-fill" style={{ width: `${progressPercent}%` }} />
+              </div>
+              <span>{answeredCount}/{totalCount}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMCQ = () => {
+    if (!currentQuestionData) {
+      return <div className="dt-no-questions">No questions available</div>;
+    }
+
+    return (
+      <div className="dt-mcq-container">
+        <div className="dt-mcq-sidebar">
+          <div className="dt-filters">
+            <select value={filters.examSession} onChange={e => handleFilterChange('examSession', e.target.value)}>
+              <option value="all">All Sessions</option>
+              {examSessions.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={filters.topic} onChange={e => handleFilterChange('topic', e.target.value)}>
+              <option value="all">All Topics</option>
+              {topics.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          
+          <div className="dt-question-palette">
+            {filteredMCQs.map((q, idx) => {
+              let paletteClass = 'dt-palette-btn';
+              if (idx === currentQuestion) paletteClass += ' active';
+              if (mcqAnswers[q.id] !== undefined) {
+                paletteClass += mcqAnswers[q.id] === q.correctAnswer ? ' correct' : ' incorrect';
+              }
+              return (
+                <button
+                  key={q.id}
+                  className={paletteClass}
+                  onClick={() => handleQuestionSelect(idx)}
+                >
+                  {idx + 1}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        
+        <div className="dt-mcq-main">
+          <div className="dt-question-header">
+            <span className="dt-badge dt-badge-session">{currentQuestionData.examSession}</span>
+            <span className="dt-badge dt-badge-topic">{currentQuestionData.topic}</span>
+            {currentQuestionData.sectionReference && (
+              <span className="dt-badge dt-badge-section">{currentQuestionData.sectionReference}</span>
+            )}
+            <span className="dt-badge dt-badge-marks">{currentQuestionData.marks} Marks</span>
+          </div>
+
+          {/* Case Study Context Panel */}
+          {currentQuestionData.caseContext && (
+            <div className="dt-case-context-panel">
+              <div className="dt-case-context-header" onClick={toggleContext}>
+                <span>📋 Case Study Context</span>
+                <span className="dt-toggle-icon">{isContextExpanded ? '▼' : '▶'}</span>
+              </div>
+              {isContextExpanded && (
+                <div className="dt-case-context-body">
+                  {currentQuestionData.caseContext}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="dt-question-text">
+            <p><strong>Q{currentQuestion + 1}.</strong> {currentQuestionData.question}</p>
+          </div>
+
+          <div className="dt-options">
+            {currentQuestionData.options?.map((option, idx) => {
+              let optionClass = 'dt-option';
+              if (isSubmitted) {
+                if (idx === currentQuestionData.correctAnswer) optionClass += ' correct';
+                else if (idx === selectedAnswer && idx !== currentQuestionData.correctAnswer) optionClass += ' incorrect';
+              } else if (idx === selectedAnswer) {
+                optionClass += ' selected';
+              }
+              return (
+                <button
+                  key={idx}
+                  className={optionClass}
+                  onClick={() => handleAnswerSelect(idx)}
+                  disabled={isSubmitted}
+                >
+                  <span className="dt-option-label">{String.fromCharCode(65 + idx)}</span>
+                  <span className="dt-option-text">{option}</span>
+                  {isSubmitted && idx === currentQuestionData.correctAnswer && (
+                    <span className="dt-option-indicator" style={{ color: '#10b981', marginLeft: '0.5rem' }}>✓</span>
+                  )}
+                  {isSubmitted && idx === selectedAnswer && idx !== currentQuestionData.correctAnswer && (
+                    <span className="dt-option-indicator" style={{ color: '#ef4444', marginLeft: '0.5rem' }}>✗</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="dt-action-buttons" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+            {!isSubmitted ? (
+              <button 
+                className="dt-submit-btn"
+                onClick={handleAnswerSubmit}
+                disabled={selectedAnswer === null}
               >
-                <span className="dt-case-number">Q{index + 1}</span>
-                <span className="dt-case-topic">{q.topic}</span>
-                <span className="dt-case-marks">{q.marks}M</span>
+                Submit Answer
               </button>
-            ))}
+            ) : (
+              <>
+                <button 
+                  className="dt-btn-secondary"
+                  onClick={() => setShowExplanation(!showExplanation)}
+                >
+                  {showExplanation ? 'Hide' : 'Show'} Explanation
+                </button>
+                <button 
+                  className="dt-submit-btn"
+                  onClick={nextQuestion}
+                  disabled={currentQuestion === filteredMCQs.length - 1}
+                >
+                  Next Question →
+                </button>
+              </>
+            )}
+          </div>
+
+          {isSubmitted && (
+            <div className={`dt-result-banner ${selectedAnswer === currentQuestionData.correctAnswer ? 'correct' : 'incorrect'}`} style={{
+              padding: '1rem',
+              borderRadius: '8px',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              background: selectedAnswer === currentQuestionData.correctAnswer 
+                ? 'rgba(16, 185, 129, 0.1)' 
+                : 'rgba(239, 68, 68, 0.1)',
+              border: `1px solid ${selectedAnswer === currentQuestionData.correctAnswer ? '#10b981' : '#ef4444'}`
+            }}>
+              <span style={{ fontSize: '1.25rem' }}>
+                {selectedAnswer === currentQuestionData.correctAnswer ? '🎉' : '❌'}
+              </span>
+              <span style={{ color: '#f1f5f9' }}>
+                {selectedAnswer === currentQuestionData.correctAnswer 
+                  ? 'Correct! Well done!' 
+                  : `Incorrect. The correct answer is ${String.fromCharCode(65 + currentQuestionData.correctAnswer)}`}
+              </span>
+            </div>
+          )}
+
+          {showExplanation && (
+            <div className="dt-explanation">
+              <h3>Detailed Explanation</h3>
+              <div className="dt-explanation-content">
+                <p>{currentQuestionData.explanation}</p>
+              </div>
+              {selectedAnswer !== currentQuestionData.correctAnswer && currentQuestionData.whereWentWrong && (
+                <div className="dt-where-wrong">
+                  <h4>Where You Went Wrong</h4>
+                  <p>{currentQuestionData.whereWentWrong[selectedAnswer]}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="dt-navigation">
+            <button onClick={prevQuestion} disabled={currentQuestion === 0}>← Previous</button>
+            <span>{currentQuestion + 1} / {filteredMCQs.length}</span>
+            <button onClick={nextQuestion} disabled={currentQuestion === filteredMCQs.length - 1}>Next →</button>
           </div>
         </div>
       </div>
     );
-  }, [longAnswerIndex, userAnswer, isSubmitted, showSolution, showWorkingNotes, selfScore, geminiAnalysis, isAnalyzing, analysisError, wordCount, handleLongAnswerSubmit, handleGeminiAnalysis, handleLongAnswerPrevious, handleLongAnswerNext, handleLongAnswerPaletteClick, getTotalSelfScore, getMaxScore, handleSelfScore, totalLongAnswerQuestions]);
+  };
 
-  const handleTabChange = useCallback((tab) => {
-    setActiveTab(tab);
-  }, []);
 
   return (
     <div className="dt-container">
       <header className="dt-header">
-        <button className="dt-back-btn" onClick={() => navigate('/')}>
-          ← Back
-        </button>
+        <button className="dt-back-btn" onClick={() => navigate('/')}>← Back</button>
         <div className="dt-header-title">
-          <SiteLogo showText={true} />
-          <div>
-            <h1>CA Final</h1>
-            <span>Direct Tax Laws & International Taxation</span>
-          </div>
+          <h1>Direct Tax Laws</h1>
         </div>
       </header>
 
       <nav className="dt-nav">
-        <button 
-          className={activeTab === 'dashboard' ? 'active' : ''} 
-          onClick={() => handleTabChange('dashboard')}
-        >
-          Dashboard
-        </button>
-        <button 
-          className={activeTab === 'mcq' ? 'active' : ''} 
-          onClick={() => handleTabChange('mcq')}
-        >
-          MCQ Practice
-        </button>
-        <button 
-          className={activeTab === 'long' ? 'active' : ''} 
-          onClick={() => handleTabChange('long')}
-        >
-          Long Answer
-        </button>
+        <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>Dashboard</button>
+        <button className={activeTab === 'mcq' ? 'active' : ''} onClick={() => setActiveTab('mcq')}>MCQ Practice</button>
+        <button className={activeTab === 'long' ? 'active' : ''} onClick={() => setActiveTab('long')}>Long Answer</button>
       </nav>
-
       <main className="dt-main">
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'mcq' && renderMCQ()}
-        {activeTab === 'long' && renderLongAnswer()}
+        {activeTab === 'long' && <LongAnswerPractice />}
       </main>
     </div>
   );
 };
 
-export default React.memo(DirectTaxDashboard);
+export default DirectTaxDashboard;
