@@ -733,6 +733,8 @@ For analysis questions:
                 setIsSubmitted(false);
                 setShowSolution(false);
                 setSelfScore({});
+                setGeminiAnalysis(null);
+                setAnalysisError(null);
               }}
             >
               <span className="case-number">Case {index + 1}</span>
