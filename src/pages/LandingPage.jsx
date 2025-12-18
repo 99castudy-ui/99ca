@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import SiteLogo from '../components/SiteLogo';
+import UserMenu from '../components/UserMenu';
 import Testimonials from '../components/Testimonials';
 import './LandingPage.css';
 
@@ -9,6 +10,7 @@ function LandingPage() {
     <div className="landing-container">
       <div className="site-header">
         <SiteLogo />
+        <UserMenu />
       </div>
       <div className="landing-hero">
         <h1>
@@ -154,6 +156,7 @@ function LandingPage() {
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-links">
+            <Link to="/pricing">Pricing</Link>
             <Link to="/about">About Us</Link>
             <Link to="/contact">Contact Us</Link>
             <Link to="/disclaimer">Disclaimer</Link>

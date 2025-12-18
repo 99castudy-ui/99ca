@@ -14,14 +14,18 @@
   position: absolute;
   top: 2rem;
   left: 2rem;
+  right: 2rem;
   z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 @media (max-width: 768px) {
   .site-header {
     position: static;
     margin-bottom: 2rem;
-    align-self: flex-start;
+    align-self: stretch;
   }
 }
 
