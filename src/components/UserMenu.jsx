@@ -1,49 +1,42 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../services/supabaseClient';
 import './UserMenu.css';
 
 const UserMenu = () => {
-  const { user, userProfile, signOut, moduleAccess, isAdmin } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef(null);
+  const [totalUses, setTotalUses] = useState(0);
+  const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Close menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleSignOut = async (e) => {
-    e?.preventDefault?.();
-    setIsOpen(false); // Close menu first
-    await signOut();
-  };
+    if (!user || isAdmin) return;
+    
+    supabase
+      .from('module_access')
+      .select('uses_remaining')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        const total = data?.reduce((sum, item) => sum + (item.uses_remaining || 0), 0) || 0;
+        setTotalUses(total);
+      });
+  }, [user, isAdmin]);
 
   if (!user) {
     return (
       <div className="auth-buttons">
-        <Link to="/login" className="btn-login">Sign In</Link>
-        <Link to="/signup" className="btn-signup">Sign Up</Link>
+        <a href="/login" className="btn-login">Sign In</a>
+        <a href="/signup" className="btn-signup">Sign Up</a>
       </div>
     );
   }
 
-  const totalUses = moduleAccess.reduce((sum, m) => sum + m.remaining_uses, 0);
-
   return (
-    <div className="user-menu" ref={menuRef}>
+    <div className="user-menu">
       <button className="user-menu-trigger" onClick={() => setIsOpen(!isOpen)}>
-        <div className="user-avatar">
-          {(userProfile?.full_name || user.email)?.[0]?.toUpperCase() || 'U'}
-        </div>
-        <span className="user-name">{userProfile?.full_name || user.email}</span>
+        <div className="user-avatar">{user.email?.charAt(0).toUpperCase()}</div>
+        <span className="user-name">{user.email}</span>
         <svg className={`chevron ${isOpen ? 'open' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="6 9 12 15 18 9" />
         </svg>
@@ -53,30 +46,24 @@ const UserMenu = () => {
         <div className="user-dropdown">
           <div className="dropdown-header">
             <p className="dropdown-email">{user.email}</p>
-            <p className="dropdown-uses">{totalUses} total uses remaining</p>
+            <p className="dropdown-uses">{isAdmin ? 'Unlimited' : `${totalUses} total uses remaining`}</p>
           </div>
           
           <div className="dropdown-divider" />
           
-          <Link to="/my-access" className="dropdown-item" onClick={() => setIsOpen(false)}>
+          <button className="dropdown-item" onClick={() => { navigate('/my-access'); setIsOpen(false); }}>
             📊 My Access
-          </Link>
-          <Link to="/pricing" className="dropdown-item" onClick={() => setIsOpen(false)}>
+          </button>
+          <button className="dropdown-item" onClick={() => { navigate('/pricing'); setIsOpen(false); }}>
             💳 Buy More
-          </Link>
-          
+          </button>
           {isAdmin && (
-            <>
-              <div className="dropdown-divider" />
-              <Link to="/admin" className="dropdown-item" onClick={() => setIsOpen(false)}>
-                🔐 Admin Panel
-              </Link>
-            </>
+            <button className="dropdown-item" onClick={() => { navigate('/admin'); setIsOpen(false); }}>
+              🔐 Admin Panel
+            </button>
           )}
-          
           <div className="dropdown-divider" />
-          
-          <button className="dropdown-item logout" onClick={handleSignOut}>
+          <button className="dropdown-item logout" onClick={() => { setIsOpen(false); signOut(); }}>
             🚪 Sign Out
           </button>
         </div>
@@ -86,4 +73,3 @@ const UserMenu = () => {
 };
 
 export default UserMenu;
-

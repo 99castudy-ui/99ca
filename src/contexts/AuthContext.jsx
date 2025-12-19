@@ -1,243 +1,213 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 
 const AuthContext = createContext({});
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [moduleAccess, setModuleAccess] = useState([]);
 
-  // Fetch user's module access
-  const fetchModuleAccess = useCallback(async (userId) => {
-    if (!supabase) return;
-    try {
-      const { data, error } = await supabase.rpc('get_user_access', {
-        p_user_id: userId
-      });
-      if (error) throw error;
-      setModuleAccess(data || []);
-    } catch (error) {
-      console.error('Error fetching module access:', error);
-      setModuleAccess([]);
-    }
-  }, []);
-
-  // Fetch user profile
-  const fetchUserProfile = useCallback(async (userId) => {
-    if (!supabase) return;
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      if (error) throw error;
-      setUserProfile(data);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    }
-  }, []);
-
-  // Initialize auth state
   useEffect(() => {
-    // If Supabase not configured, skip auth
     if (!supabase) {
-      console.warn('Supabase not configured - running without auth');
+      console.log('⚠️ Supabase not configured - skipping auth initialization');
       setLoading(false);
       return;
     }
 
-    const initAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await Promise.all([
-            fetchUserProfile(session.user.id),
-            fetchModuleAccess(session.user.id)
-          ]);
+    let mounted = true;
+    let subscription = null;
+    const adminCheckInProgressRef = { current: false };
+
+    const checkAdmin = async (userId) => {
+      if (!mounted || !supabase || !userId) {
+        console.log('⚠️ Skipping admin check - not mounted, supabase not configured, or no userId');
+        if (mounted) {
+          setIsAdmin(false);
+          setLoading(false);
         }
-      } catch (error) {
-        console.error('Auth init error:', error);
+        return;
+      }
+
+      // Prevent concurrent calls - wait if one is in progress
+      if (adminCheckInProgressRef.current) {
+        console.log('⏭️ Admin check already in progress, waiting for it to complete...');
+        // Wait up to 2 seconds for the check to complete
+        let waited = 0;
+        while (adminCheckInProgressRef.current && waited < 2000) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          waited += 100;
+        }
+        if (adminCheckInProgressRef.current) {
+          console.log('⏭️ Admin check timed out, proceeding with new check');
+        } else {
+          console.log('⏭️ Admin check completed, skipping duplicate call');
+          return;
+        }
+      }
+
+      adminCheckInProgressRef.current = true;
+
+      try {
+        console.log('🔍 Starting admin check for user:', userId);
+        
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('is_admin')
+          .eq('id', userId)
+          .single();
+        
+        console.log('📊 Admin check response:', { data, error });
+        
+        if (!mounted) {
+          adminCheckInProgressRef.current = false;
+          return;
+        }
+        
+        if (error) {
+          console.error('❌ Admin check error:', error);
+          setIsAdmin(false);
+        } else {
+          const adminStatus = data?.is_admin || false;
+          console.log('✅ Setting admin status to:', adminStatus);
+          setIsAdmin(adminStatus);
+        }
+      } catch (err) {
+        console.error('💥 Admin check exception:', err);
+        if (mounted) {
+          setIsAdmin(false);
+        }
       } finally {
-        setLoading(false);
+        adminCheckInProgressRef.current = false;
+        if (mounted) {
+          console.log('🏁 Admin check complete, setting loading to false');
+          setLoading(false);
+        }
       }
     };
 
-    initAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await Promise.all([
-            fetchUserProfile(session.user.id),
-            fetchModuleAccess(session.user.id)
-          ]);
-        } else {
-          setUserProfile(null);
-          setModuleAccess([]);
-        }
+    const initialize = async () => {
+      // First, check for existing session immediately (synchronously)
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      
+      if (!mounted) return;
+      
+      console.log('🔐 Initial session check:', initialSession?.user?.email || 'No session');
+      
+      if (initialSession?.user) {
+        setUser(initialSession.user);
+        await checkAdmin(initialSession.user.id);
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+        setLoading(false);
       }
-    );
 
-    return () => subscription.unsubscribe();
-  }, [fetchModuleAccess, fetchUserProfile]);
-
-  // Sign up with email and password
-  const signUp = async (email, password, fullName) => {
-    if (!supabase) {
-      return { data: null, error: { message: 'Auth not configured. Add Supabase credentials to .env file.' } };
-    }
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName }
+      // Then set up the listener for future auth state changes
+      const { data: authListener } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (!mounted) return;
+          
+          console.log('🔄 Auth state changed:', event);
+          
+          // Skip INITIAL_SESSION - we already handled it with getSession() above
+          if (event === 'INITIAL_SESSION') {
+            console.log('⏭️ Skipping INITIAL_SESSION - already handled via getSession()');
+            return;
+          }
+          
+          if (session?.user) {
+            setUser(session.user);
+            await checkAdmin(session.user.id);
+          } else {
+            setUser(null);
+            setIsAdmin(false);
+            setLoading(false);
+          }
         }
-      });
-      return { data, error };
-    } catch (error) {
-      return { data: null, error };
-    }
-  };
+      );
+      
+      subscription = authListener.subscription;
+    };
 
-  // Sign in with email and password
+    initialize();
+
+    return () => {
+      mounted = false;
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, []);
+
   const signIn = async (email, password) => {
     if (!supabase) {
-      return { data: null, error: { message: 'Auth not configured. Add Supabase credentials to .env file.' } };
+      return { data: null, error: { message: 'Supabase not configured' } };
     }
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      return { data, error };
-    } catch (error) {
-      return { data: null, error };
-    }
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    return { data, error };
   };
 
-  // Sign out
+  const signUp = async (email, password, fullName) => {
+    if (!supabase) {
+      return { data: null, error: { message: 'Supabase not configured' } };
+    }
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } }
+    });
+    return { data, error };
+  };
+
   const signOut = async () => {
-    // Clear state immediately
+    // Clear state first
     setUser(null);
-    setUserProfile(null);
-    setModuleAccess([]);
+    setIsAdmin(false);
     
-    try {
-      if (supabase) {
-        // Sign out from Supabase
+    // Then sign out from Supabase
+    if (supabase) {
+      try {
         await supabase.auth.signOut();
+      } catch (err) {
+        console.error('Error signing out:', err);
       }
-    } catch (error) {
-      console.error('Sign out error:', error);
     }
     
-    // Clear all Supabase-related localStorage
-    try {
-      if (typeof window !== 'undefined') {
-        const keys = Object.keys(localStorage);
-        keys.forEach(key => {
-          if (key.includes('supabase') || key.startsWith('sb-')) {
+    // Clear all Supabase-related localStorage items
+    // Supabase stores session data with keys like 'sb-<project-ref>-auth-token'
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (supabaseUrl) {
+      const projectRef = supabaseUrl.split('//')[1]?.split('.')[0];
+      if (projectRef) {
+        // Clear all localStorage keys that start with 'sb-' followed by project ref
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') && key.includes(projectRef)) {
             localStorage.removeItem(key);
           }
         });
-        sessionStorage.clear();
       }
-    } catch (e) {
-      console.error('Error clearing storage:', e);
     }
     
-    // Force reload
-    window.location.href = '/';
-  };
-
-  // Check if user has access to a module
-  const checkAccess = useCallback((moduleCode) => {
-    const module = moduleAccess.find(m => m.module_code === moduleCode);
-    return module?.has_access ?? false;
-  }, [moduleAccess]);
-
-  // Get remaining uses for a module
-  const getRemainingUses = useCallback((moduleCode) => {
-    const module = moduleAccess.find(m => m.module_code === moduleCode);
-    return module?.remaining_uses ?? 0;
-  }, [moduleAccess]);
-
-  // Get module ID by code
-  const getModuleId = useCallback((moduleCode) => {
-    const module = moduleAccess.find(m => m.module_code === moduleCode);
-    return module?.module_id ?? null;
-  }, [moduleAccess]);
-
-  // Consume one access use
-  const consumeAccess = async (moduleId) => {
-    if (!supabase) return { success: false, message: 'Auth not configured' };
-    if (!user) return { success: false, message: 'Not logged in' };
-    
-    try {
-      const { data, error } = await supabase.rpc('consume_module_use', {
-        p_user_id: user.id,
-        p_module_id: moduleId
-      });
-      
-      if (error) throw error;
-      
-      const result = data?.[0] ?? { success: false, message: 'Unknown error' };
-      
-      if (result.success) {
-        await fetchModuleAccess(user.id);
+    // Clear all localStorage items starting with 'sb-' (fallback)
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-')) {
+        localStorage.removeItem(key);
       }
-      
-      return result;
-    } catch (error) {
-      console.error('Consume access error:', error);
-      return { success: false, message: error.message };
-    }
-  };
-
-  // Refresh module access
-  const refreshAccess = useCallback(() => {
-    if (user) {
-      return fetchModuleAccess(user.id);
-    }
-  }, [user, fetchModuleAccess]);
-
-  const value = {
-    user,
-    userProfile,
-    loading,
-    moduleAccess,
-    signUp,
-    signIn,
-    signOut,
-    checkAccess,
-    getRemainingUses,
-    getModuleId,
-    consumeAccess,
-    refreshAccess,
-    isAdmin: userProfile?.is_admin ?? false
+    });
+    
+    // Clear sessionStorage
+    sessionStorage.clear();
+    
+    // Force navigation
+    window.location.replace('/');
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, isAdmin, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
